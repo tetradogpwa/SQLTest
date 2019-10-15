@@ -1,4 +1,6 @@
+//import
 importScripts("utils.js");
+importScripts("sql-wasm.js");
 
 class BD {
     static HEADERLOCALHOST = "BDSQL";
