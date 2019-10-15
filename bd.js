@@ -48,7 +48,7 @@ class BD {
     }
     Export() {
         return new Promise((okey, error) => {
-            var
+
             try {
                 okey(this._bd.export());
             } catch (ex) {

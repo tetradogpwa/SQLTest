@@ -8,12 +8,12 @@
 <body>
 
     <script>
-        var bd = new BD();
+        var db = new bd.BD();
         // Run a query without reading the results
-        bd.Run("CREATE TABLE test (col1, col2);").then(() => {
+        db.Run("CREATE TABLE test (col1, col2);").then(() => {
             // Insert two rows: (1,111) and (2,222)
-            bd.Run("INSERT INTO test VALUES ({0},{1}), ({2},{3})", 1, 111, 2, 222).then(() => {
-                bd.Eject("select * from test;").then(console.log);
+            db.Run("INSERT INTO test VALUES ({0},{1}), ({2},{3})", 1, 111, 2, 222).then(() => {
+                db.Eject("select * from test;").then(console.log);
 
             });
         });
