@@ -5,10 +5,8 @@ importScripts("sql-wasm.js");
 class BD {
     static HEADERLOCALHOST = "BDSQL";
     //constructores
-    constructor() {
-        this.Init();
-    }
-    constructor(idBD) {
+
+    constructor(idBD = "") {
         this._idBD = idBD;
         Load(this._idBD).then(() => {
             if (this._bd == null)
