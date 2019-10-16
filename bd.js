@@ -1,26 +1,38 @@
 //import
-importScripts("utils.js");
-importScripts("sql-wasm.js");
+Import("utils.js");
+Import("sql-wasm.js");
+
+
+
+function Import(file) {
+    //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
+    document.write('<script language=\"JavaScript\" type=\"text/JavaScript\" src=' + file + '></script>');
+}
+
 
 class BD {
     static HEADERLOCALHOST = "BDSQL";
     //constructores
 
     constructor(idBD = "") {
-        this._idBD = idBD;
-        Load(this._idBD).then(() => {
-            if (this._bd == null)
-                this.Init();
-        });
-    }
-    Init() {
-        this._bd = new SQL.Database();
-        this._idBD = new Date().getTime();
+
+        this.IdBD = idBD;
+        if (this.IdBD != "") {
+            this.Init = Load(this.IdBD);
+        } else {
+            this.Init = initSqlJs().then(SQL => {
+                this._bd = new SQL.Database();
+                this.IdBD = new Date().getTime();
+            });
+        }
     }
 
     //propiedades
     get IdBD() {
-            return this._idBD;
+        return this._idBD;
+    }
+    set IdBD(id) {
+            this._idBD = id;
         }
         //metodos cargar/guardar
     Load(idBD) {
@@ -39,7 +51,7 @@ class BD {
     Save() {
         return new Promise((okey, error) => {
             try {
-                this.Import().then(data => localStorage.setItem(this._idBD, JSON.stringify(data)));
+                this.Import().then(data => localStorage.setItem(this.IdBD, JSON.stringify(data)));
                 okey();
             } catch (ex) {
                 error(ex);
@@ -83,7 +95,7 @@ class BD {
         return new Promise((okey, error) => {
 
             try {
-                strSQL = strSQL.Format(args);
+                strSQL = StringUtils.Format(strSQL, args);
                 this._bd.run(strSQL);
                 okey();
             } catch (ex) {

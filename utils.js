@@ -1,17 +1,28 @@
 //source:https://coderwall.com/p/flonoa/simple-string-format-in-javascript
-String.prototype.Format = function() {
-    text = this;
-    for (k in arguments) {
-        text = text.Replace("{" + k + "}", arguments[k]);
+
+class StringUtils {
+
+    static Format(str, ...args) {
+        args = ArrayUtils.Root(args);
+        for (var k = 0; k < args.length; k++) {
+            str = StringUtils.Replace(str, "{" + k + "}", args[k]);
+        }
+        return str;
     }
-    return text;
+    static Replace(str, oldText, newText) {
+        while (str.includes(oldText)) {
+            str = str.replace(oldText, newText);
+        }
+        return str;
+    }
+
 }
-String.prototype.Replace = function() {
-    if (arguments.length < 2)
-        throw "se necesitan dos argumentos, textoAEncontrar,reemplazarPor"
-    text = this;
-    while (text.includes(arguments[0])) {
-        text = text.replace(arguments[0], arguments[1]);
+class ArrayUtils {
+
+    static Root(args) {
+        while (args instanceof Array && args.length == 1 && args[0] instanceof Array)
+            args = args[0];
+        return args;
     }
-    return text;
+
 }
