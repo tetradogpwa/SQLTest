@@ -11,7 +11,7 @@ function Import(file) {
 
 
 class BD {
-    static HEADERLOCALHOST = "BDSQL";
+    static get HEADERLOCALHOST() { return "BDSQL" };
     //constructores
 
     constructor(idBD = "") {
@@ -22,7 +22,7 @@ class BD {
         } else {
             this.Init = initSqlJs().then(SQL => {
                 this._bd = new SQL.Database();
-                this.IdBD = new Date().getTime();
+                this.IdBD = BD.HEADERLOCALHOST + new Date().getTime();
             });
         }
     }
@@ -51,7 +51,7 @@ class BD {
     Save() {
         return new Promise((okey, error) => {
             try {
-                this.Import().then(data => localStorage.setItem(this.IdBD, JSON.stringify(data)));
+                this.Export().then(data => localStorage.setItem(this.IdBD, JSON.stringify(data)));
                 okey();
             } catch (ex) {
                 error(ex);
@@ -68,12 +68,14 @@ class BD {
             }
         });
     }
-    Import(bdBin) {
+    Import(dataBD) {
             return new Promise((okey, error) => {
 
                 try {
-                    this._bd = new SQL.Database(new Uint8Array(bdBin));
-                    okey(this);
+                    initSqlJs().then(SQL => {
+                        this._bd = new SQL.Database(new Uint8Array(dataBD));
+                        okey(this);
+                    });
                 } catch (ex) {
                     error(ex);
                 }
@@ -84,7 +86,7 @@ class BD {
         return new Promise((okey, error) => {
 
             try {
-                okey(this._bd.exec(strSQL));
+                okey(this._bd.exec(StringUtils.Format(strSQL, args)));
             } catch (ex) {
                 error(ex);
             }
@@ -95,8 +97,7 @@ class BD {
         return new Promise((okey, error) => {
 
             try {
-                strSQL = StringUtils.Format(strSQL, args);
-                this._bd.run(strSQL);
+                this._bd.run(StringUtils.Format(strSQL, args));
                 okey();
             } catch (ex) {
                 error(ex);
@@ -127,16 +128,18 @@ class BD {
     static LoadAllBD() {
         return new Promise((okey, error) => {
             var bds;
+            var initBDS;
             try {
                 bds = [];
+                initBDS = [];
                 for (var i = 0; i < localStorage.lenght; i++) {
-                    if (String(localStorage[i]).startsWith(HEADERLOCALHOST)) {
+                    if (String(localStorage[i]).startsWith(BD.HEADERLOCALHOST)) {
 
-                        bds.push(new BD(String(localStorage[i]).replace(this.HEADERLOCALHOST, "")));
-
+                        bds.push(new BD(String(localStorage[i])));
+                        initBDS.push(bds[bds.length - 1].Init);
                     }
                 }
-                okey(bds);
+                Promise.all(initBDS).then(() => okey(bds));
             } catch (ex) {
                 error(ex);
             }

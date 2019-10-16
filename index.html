@@ -8,17 +8,24 @@
 <body>
 
     <script>
-        var db = new BD();
-        db.Init.then(() => {
-            // Run a query without reading the results
-            db.Run("CREATE TABLE test (col1, col2);").then(() => {
-                // Insert two rows: (1,111) and (2,222)
-                db.Run("INSERT INTO test VALUES ({0},{1}), ({2},{3})", 1, 111, 2, 222).then(() => {
-                    db.Eject("select * from test;").then(console.log);
+        BD.LoadAllBD().then((bds) => {
+            var db;
+            if (bds.length == 0) {
+                db = new BD();
+                db.Init.then(() => {
+                    // Run a query without reading the results
+                    db.Run("CREATE TABLE test (col1, col2);").then(() => {
+                        // Insert two rows: (1,111) and (2,222)
+                        db.Run("INSERT INTO test VALUES ({0},{1}), ({2},{3})", 1, 111, 2, 222).then(() => {
+                            db.Save();
+
+                        });
+                    });
 
                 });
-            });
-
+            } else {
+                console.log(dbs);
+            }
         });
     </script>
 
