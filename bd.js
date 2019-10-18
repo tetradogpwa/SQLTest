@@ -38,9 +38,9 @@ class BD {
     Load(idBD) {
         return new Promise((okey, error) => {
             try {
-                var bdJSON = localStorage.getItem(idBD);
-                if (bdJSON != null) {
-                    this.Import(JSON.parse(bdJSON)).then(() => okey());
+                var data = localStorage.getItem(idBD);
+                if (data != null) {
+                    this.Import(data).then(() => okey());
 
                 } else okey();
             } catch (ex) {
@@ -51,7 +51,7 @@ class BD {
     Save() {
         return new Promise((okey, error) => {
             try {
-                this.Export().then(data => localStorage.setItem(this.IdBD, JSON.stringify(data)));
+                this.Export().then(data => localStorage.setItem(this.IdBD, data));
                 okey();
             } catch (ex) {
                 error(ex);
@@ -62,7 +62,7 @@ class BD {
         return new Promise((okey, error) => {
 
             try {
-                okey(this._bd.export());
+                okey(ByteArrayUtils.ToByteArray(this._bd.export()));
             } catch (ex) {
                 error(ex);
             }
@@ -73,7 +73,7 @@ class BD {
 
                 try {
                     initSqlJs().then(SQL => {
-                        this._bd = new SQL.Database(new Uint8Array(dataBD));
+                        this._bd = new SQL.Database(new Uint8Array(ByteArrayUtils.ToBase64(dataBD)));
                         okey(this);
                     });
                 } catch (ex) {
