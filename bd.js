@@ -119,7 +119,7 @@ class BD {
     static SaveAll(...bds) {
         return new Promise((okey, error) => {
             var savs = [];
-            for (i in bds) {
+            for (var i = 0; i < bds.length; i++) {
                 savs.push(bds[i].Save());
             }
             Promise.all(savs).then(() => okey()).catch(error);
