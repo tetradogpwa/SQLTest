@@ -7,25 +7,34 @@
 </head>
 
 <body>
-    <header>
+
+    <header class="unloaded">
         <h1>SQL Test</h1>
         <select id="cmbBDs" onchange="if (this.selectedIndex) ChangeBD(this.selectedIndex);">
         </select>
-        <button id="btnAdd" type="button" onclick="NewBD()" value="Add"></button>
+        <button id="btnAdd" type="button" onclick="NewBD()">Add</button>
+        <button id="btnClone" type="button" onclick="CloneBD()">Clone</button>
+        <button id="btnDelete" type="button" onclick="DeleteBD()">Delete</button>
     </header>
-    <section>
+    <div id="loader"></div>
+    <section class="unloaded">
         <article>
-            <h2 id="hIdBD"></h2>
-            <input id="inpSQLSentence" type="text"></input>
-            <button id="btnExecuteSQL" type="button" onclick="ExecuteSQL()" value="Execute"></button>
+            <h4>SQL:</h4>
+            <textarea id="inpSQLSentence" type="text"></textarea>
         </article>
         <article>
-            <input id="inpSQLResult" type="text"></input>
+            <button id="btnExecuteSQL" type="button" onclick="ExecuteSQL()">Execute</button>
+            <button id="btnExecuteSQL" type="button" onclick="Clear()">Clear</button>
+
+        </article>
+        <article>
+            <h4>Output:</h4>
+            <textarea id="inpSQLResult" type="text" readonly="true"></textarea>
         </article>
     </section>
-    <footer>
-        <button type="button" onclick="SaveAll()" value="Save All"></button>
-        <button type="button" onclick="Save()" value="Save"></button>
+    <footer class="unloaded">
+        <button type="button" onclick="SaveAll()">Save All</button>
+        <button type="button" onclick="Save()">Save</button>
 
     </footer>
 </body>

@@ -5,10 +5,12 @@ function Import(file) {
     document.write('<script language=\"JavaScript\" type=\"text/JavaScript\" src=' + file + '></script>');
 }
 
+const SQLSENTENCE = "sqlSentence";
+
 var selectedBD;
 var dbs;
 
-BD.LoadAll().then((bds) => {
+window.onload = () => BD.LoadAll().then((bds) => {
 
     dbs = bds;
     if (dbs.length == 0) {
@@ -22,13 +24,20 @@ BD.LoadAll().then((bds) => {
 function _LoadBDS() {
     return new Promise((okey, error) => {
         var selector = document.getElementById("cmbBDs");
-
+        var elements;
 
         for (i in dbs) {
 
             selector.appendChild(GetOption(dbs[i], i));
         }
         ChangeBD(0);
+
+        document.getElementById("inpSQLSentence").value = localStorage.getItem(SQLSENTENCE);
+        document.getElementById("loader").remove();
+        elements = document.getElementsByClassName("unloaded");
+        for (var i = 0; i < elements.length; i++)
+            elements[i].removeAttribute("class");
+
         okey();
     });
 }
@@ -43,12 +52,21 @@ function GetOption(bd, i) {
 
 function ChangeBD(index) {
     selectedBD = dbs[index];
-    document.getElementById("hIdBD").innerHTML = selectedBD.IdBD;
 
 }
 
 function NewBD() {
-    var bd = new BD();
+    SetNewBD(new BD());
+}
+
+function CloneBD() {
+    if (selectedBD != null)
+        selectedBD.Clone().then((bd) => SetNewBD(bd));
+    else alert("Please select one first");
+}
+
+function SetNewBD(bd) {
+
     var cmbBD = document.getElementById("cmbBDs");
     bd.Init.then(() => {
         dbs.push(bd);
@@ -57,15 +75,47 @@ function NewBD() {
     });
 }
 
+function DeleteBD() {
+    var found = false;
+    var i;
+    var selector;
+    if (selectedBD != null) {
+
+        for (i = 0; i < dbs.length && !found; i++) {
+            found = selectedBD.IdBD == dbs[i].IdBD;
+        }
+        i--;
+        dbs.splice(i);
+        selector = document.getElementById("cmbBDs");
+        selector.children[i].remove();
+        localStorage.removeItem(selectedBD.IdBD);
+        selectedBD = null;
+
+        if (dbs.length == 0)
+            NewBD();
+        else ChangeBD(0);
+
+    } else alert("Please select one first");
+}
+
+function Clear() {
+    document.getElementById("inpSQLSentence").value = "";
+    localStorage.removeItem(SQLSENTENCE);
+}
+
 function ExecuteSQL() {
     var SQLSentence = document.getElementById("inpSQLSentence").value;
     var inpResult = document.getElementById("inpSQLResult");
-    selectedBD.Execute(SQLSentence)
-        .then((resultado) => {
-            inpResult.value = "BD='" + selectedBD.IdBD + "' result:'" + resultado + "'";
-        }).catch((error) => {
-            inpResult.value = "BD='" + selectedBD.IdBD + "' error:'" + error + "'";
-        });
+    if (selectedBD != null) {
+        selectedBD.Execute(SQLSentence)
+            .then((resultado) => {
+
+                inpResult.value = "BD='" + selectedBD.IdBD + "' result:'" + BD.ResultToString(resultado) + "'";
+                localStorage.setItem(SQLSENTENCE, SQLSentence);
+            }).catch((error) => {
+                inpResult.value = "BD='" + selectedBD.IdBD + "' error:'" + error + "'";
+            });
+    } else alert("Please select one first");
 }
 
 function SaveAll() {
@@ -74,6 +124,7 @@ function SaveAll() {
 }
 
 function Save() {
-    selectedBD.Save().then(() => alert("Saved successfully")).catch(() => alert("Error on save BD:" + selectedBD.IdBD));
-
+    if (selectedBD != null)
+        selectedBD.Save().then(() => alert("Saved successfully")).catch(() => alert("Error on save BD:" + selectedBD.IdBD));
+    else alert("Please select one first");
 }

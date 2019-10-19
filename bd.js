@@ -127,4 +127,27 @@ class BD {
         });
     }
 
+    static ResultToString(result) {
+        var text = "";
+        if (result.length != 0) {
+            for (var j = 0; j < result.length; j++) {
+                text += j + ":" + BD._filaToString(result[j].columns);
+                for (i in result[j].values)
+                    text += BD._filaToString(result[j].values[i]);
+            }
+        } else text = "No result from SQLite!";
+
+        return text;
+    }
+
+    static _filaToString(array) {
+        var fila = "";
+        for (var i = 0; i < array.length; i++) {
+            fila += "\t" + array[i];
+        }
+        fila += "\n";
+
+        return fila;
+    }
+
 }
