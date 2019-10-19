@@ -67,7 +67,7 @@ class BD {
     }
 
     //SQL
-    Eject(strSQL, ...args) {
+    Execute(strSQL, ...args) {
         return new Promise((okey, error) => okey(this._bd.exec(StringUtils.Format(strSQL, args))).catch(error));
     }
 
@@ -98,7 +98,7 @@ class BD {
             });
         }
         //cargar/guardar
-    static LoadAllBD() {
+    static LoadAll() {
         return new Promise((okey, error) => {
             var bds = [];
             var initBDS = [];
@@ -116,7 +116,7 @@ class BD {
         });
     }
 
-    static SaveAllBD(...bds) {
+    static SaveAll(...bds) {
         return new Promise((okey, error) => {
             var savs = [];
             for (i in bds) {

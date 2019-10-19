@@ -2,33 +2,32 @@
 <html>
 
 <head>
-    <script src="bd.js"></script>
+    <style href="style.css"></style>
+    <script src="main.js"></script>
 </head>
 
 <body>
+    <header>
+        <h1>SQL Test</h1>
+        <select id="cmbBDs" onchange="if (this.selectedIndex) ChangeBD(this.selectedIndex);">
+        </select>
+        <button id="btnAdd" type="button" onclick="NewBD()" value="Add"></button>
+    </header>
+    <section>
+        <article>
+            <h2 id="hIdBD"></h2>
+            <input id="inpSQLSentence" type="text"></input>
+            <button id="btnExecuteSQL" type="button" onclick="ExecuteSQL()" value="Execute"></button>
+        </article>
+        <article>
+            <input id="inpSQLResult" type="text"></input>
+        </article>
+    </section>
+    <footer>
+        <button type="button" onclick="SaveAll()" value="Save All"></button>
+        <button type="button" onclick="Save()" value="Save"></button>
 
-    <script>
-        BD.LoadAllBD().then((bds) => {
-            var db;
-            if (bds.length == 0) {
-                db = new BD();
-                db.Init.then(() => {
-                    // Run a query without reading the results
-                    db.Run("CREATE TABLE test (col1, col2);").then(() => {
-                        // Insert two rows: (1,111) and (2,222)
-                        db.Run("INSERT INTO test VALUES ({0},{1}), ({2},{3})", 1, 111, 2, 222).then(() => {
-                            db.Save();
-
-                        });
-                    });
-
-                });
-            } else {
-                console.log(bds);
-            }
-        });
-    </script>
-
+    </footer>
 </body>
 
 </html>
