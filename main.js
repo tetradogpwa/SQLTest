@@ -1,4 +1,5 @@
 Import("bd.js");
+Import("sw.js");
 
 function Import(file) {
     //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
@@ -10,15 +11,22 @@ const SQLSENTENCE = "sqlSentence";
 var selectedBD;
 var dbs;
 
-window.onload = () => BD.LoadAll().then((bds) => {
+window.onload = () => {
 
-    dbs = bds;
-    if (dbs.length == 0) {
-        dbs = [new BD()];
-        dbs[0].Init.then(_LoadBDS);
-    } else _LoadBDS();
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/SQLTest/sw.js');
+    }
 
-});
+    BD.LoadAll().then((bds) => {
+
+            dbs = bds;
+            if (dbs.length == 0) {
+                dbs = [new BD()];
+                dbs[0].Init.then(_LoadBDS);
+            } else _LoadBDS();
+
+        }
+    });
 
 
 function _LoadBDS() {
