@@ -1,0 +1,19 @@
+{
+    "name": "SQL Test for beginners",
+    "short_name": "SQL Test",
+    "lang": "us",
+    "start_url": "/SQLTest/",
+    "display": "standalone",
+"icons": [
+ 
+    {
+      "src": "images/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg"
+    }
+  ],
+    "serviceworker": {
+        "src": "sw.js"
+
+    }
+}
