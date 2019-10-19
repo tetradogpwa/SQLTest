@@ -19,15 +19,15 @@ window.onload = () => {
 
     BD.LoadAll().then((bds) => {
 
-            dbs = bds;
-            if (dbs.length == 0) {
-                dbs = [new BD()];
-                dbs[0].Init.then(_LoadBDS);
-            } else _LoadBDS();
+        dbs = bds;
+        if (dbs.length == 0) {
+            dbs = [new BD()];
+            dbs[0].Init.then(_LoadBDS);
+        } else _LoadBDS();
 
-        }
     });
 
+};
 
 function _LoadBDS() {
     return new Promise((okey, error) => {
