@@ -47,7 +47,7 @@ function _LoadBDS() {
         document.getElementById("loader").remove();
         elements = document.getElementsByClassName("unloaded");
         for (var i = 0; i < elements.length; i++)
-            elements[i].removeAttribute("class");
+            elements[i].classList.remove("unloaded");
 
         okey();
     });
