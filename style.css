@@ -4,6 +4,10 @@
 }
 
 #loader {
+/*Source center https://devcode.la/tutoriales/como-centrar-un-div-con-css/  */
+  display: flex;
+  justify-content: center;
+  align-items: center;
     border: 16px solid #f3f3f3;
     /* Light grey */
     border-top: 16px solid #3498db;
