@@ -11,7 +11,7 @@ const sqlVar = "inpSQLSentence";
 const resultVar = "inpSQLResult";
 const cmbVar = "cmbBDs";
 var dbs;
-
+var toFinish;
 window.onload = () => {
 
     if ('serviceWorker' in navigator) {
@@ -119,9 +119,11 @@ function DeleteBD() {
         dbs.splice(i);
 
         if (dbs.length == 0)
-            this.NewBD().then(() => this.EnableButtons());
-        else this.LoadCmb().then(() => { this.EnableButtons();
-            this.ChangeBD(0) });
+            toFinish = this.NewBD().then(() => this.EnableButtons());
+        else toFinish = this.LoadCmb().then(() => {
+            this.EnableButtons();
+            this.ChangeBD(0)
+        });
 
     } else alert("Please select one first");
 }
