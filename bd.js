@@ -11,7 +11,9 @@ function Import(file) {
 
 
 class BD {
+    BD.CacheBD = "CACHE_BD";
     static get HEADERLOCALHOST() { return "BDSQL" };
+
     //constructores
 
     constructor(idBD = "") {
@@ -37,12 +39,14 @@ class BD {
         //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
+            caches.open(BD.CacheBD).then((cache) => {
+                if (idBD in cache) {
+                    this.Import(cache[idBD]).then(() => okey()).catch(error);
 
-            var data = localStorage.getItem(idBD);
-            if (data != null) {
-                this.Import(data).then(() => okey()).catch(error);
+                } else okey();
 
-            } else okey();
+            })
+
 
         });
     }
@@ -50,8 +54,10 @@ class BD {
         return new Promise((okey, error) => {
             this.Export()
                 .then(data => {
-                    localStorage.setItem(this.IdBD, data);
-                    okey();
+                    caches.open(BD.CacheBD).then((cache) => {
+                        cache[this.IdBD] = data;
+                        okey();
+                    });
                 }).catch(error);
         });
     }
@@ -65,10 +71,10 @@ class BD {
             okey(this);
         }).catch(error));
     }
-    ExecuteURL(url, ...args) {
+    ExecuteURL(url, args, tratarRespuestaFetch = (r) => r.text()) {
             return fetch(url).then((result) => {
                 if (result.ok)
-                    return result.text();
+                    return tratarRespuestaFetch(result);
                 else throw "No se puede obtener url=" + url;
             }).then((data) => this.Execute(data, args));
         }
@@ -109,15 +115,20 @@ class BD {
             var bds = [];
             var initBDS = [];
             var key;
-            for (var i = 0; i < localStorage.length; i++) {
-                key = String(localStorage.key(i));
-                if (key.startsWith(BD.HEADERLOCALHOST)) {
+            caches.open(BD.CacheBD).then((cache) => {
+                cache.keys().then((keys) => {
+                    for (var i = 0; i < keys.length; i++) {
+                        key = String(keys[i]);
+                        if (key.startsWith(BD.HEADERLOCALHOST)) {
 
-                    bds.push(new BD(key));
-                    initBDS.push(bds[bds.length - 1].Init);
-                }
-            }
-            Promise.all(initBDS).then(() => okey(bds)).catch(error);
+                            bds.push(new BD(key));
+                            initBDS.push(bds[bds.length - 1].Init);
+                        }
+                    }
+                    Promise.all(initBDS).then(() => okey(bds)).catch(error);
+
+                });
+            });
 
         });
     }

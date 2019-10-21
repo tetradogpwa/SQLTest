@@ -12,6 +12,9 @@ const resultVar = "inpSQLResult";
 const cmbVar = "cmbBDs";
 var dbs;
 var toFinish;
+
+BD.CacheBD = "Cache_BD_SQLTest";
+
 window.onload = () => {
 
     if ('serviceWorker' in navigator) {
