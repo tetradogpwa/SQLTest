@@ -65,11 +65,15 @@ function GetOption(bd, i) {
 }
 
 function ChangeBD(index) {
-    document.getElementById("cmbBDs").selectedIndex = index;
+    return new Promise((okey, error) => {
+        document.getElementById("cmbBDs").selectedIndex = index;
+        okey();
+    });
+
 }
 
 function NewBD() {
-    SetNewBD(new BD());
+    return SetNewBD(new BD());
 }
 
 function CloneBD() {
@@ -93,6 +97,7 @@ function DeleteBD() {
     var i;
     var selector;
     var selectedBD = GetSelectedBD();
+    var opcion;
     if (selectedBD != null) {
         DisableButtons();
         for (i = 0; i < dbs.length && !found; i++) {
@@ -106,9 +111,9 @@ function DeleteBD() {
         dbs.splice(i);
 
         if (dbs.length == 0)
-            NewBD();
-        else ChangeBD(0);
-        EnableButtons();
+            opcion = NewBD();
+        else opcion = ChangeBD(0);
+        opcion.then(() => EnableButtons());
     } else alert("Please select one first");
 }
 
