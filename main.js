@@ -107,9 +107,7 @@ function LoadCmb() {
 function DeleteBD() {
     var found = false;
     var i;
-    var selector;
     var selectedBD = this.GetSelectedBD();
-    var opcion;
     if (selectedBD != null) {
         this.DisableButtons();
         for (i = 0; i < dbs.length && !found; i++) {
@@ -121,9 +119,10 @@ function DeleteBD() {
         dbs.splice(i);
 
         if (dbs.length == 0)
-            opcion = this.NewBD();
-        else opcion = this.LoadCmb().then(() => this.ChangeBD(0));
-        opcion.then(() => this.EnableButtons());
+            this.NewBD().then(() => this.EnableButtons());
+        else this.LoadCmb().then(() => { this.EnableButtons();
+            this.ChangeBD(0) });
+
     } else alert("Please select one first");
 }
 
