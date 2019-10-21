@@ -1,4 +1,4 @@
-const CACHE_VERSION_ANTERIOR = 1; //subo aqui para no tener problemas :D
+const CACHE_VERSION_ANTERIOR = 2; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
 
 const CACHE_INMUTABLE = "CACHE_INMUTABLE_SQLTest";
@@ -30,15 +30,16 @@ self.addEventListener('install', e => {
     var inmutables = self.FetchCache(CACHE_INMUTABLE + CACHE_VERSION, INMUTABLES);
     var shell = self.FetchCache(CACHE_SHELL + CACHE_VERSION, SHELL);
     console.log("installing version " + CACHE_VERSION);
-    e.waitUntil(Promise.all(inmutables, shell));
+    e.waitUntil(Promise.all([inmutables, shell]));
 
 });
 
 
 self.addEventListener('activate', e => {
     console.log("uninstalling version " + CACHE_VERSION_ANTERIOR);
-    e.waitUntil(Promise.all(caches.delete(CACHE_INMUTABLE + CACHE_VERSION_ANTERIOR),
-        caches.delete(CACHE_SHELL + CACHE_VERSION_ANTERIOR)));
+    e.waitUntil(Promise.all([caches.delete(CACHE_INMUTABLE + CACHE_VERSION_ANTERIOR),
+        caches.delete(CACHE_SHELL + CACHE_VERSION_ANTERIOR)
+    ]));
 
 });
 
