@@ -1,4 +1,4 @@
-const CACHE_VERSION_ANTERIOR = 4; //subo aqui para no tener problemas :D
+const CACHE_VERSION_ANTERIOR = 5; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
 
 const CACHE_INMUTABLE = "CACHE_INMUTABLE_SQLTest";
@@ -17,6 +17,9 @@ const SHELL = [
 
     "index.html",
     "style.css",
+    "images/icons/icon-144x144.png",
+    "images/icons/icon-512x512.png",
+    "sw.js",
     "main.js",
     "bd.js",
     "utils.js",
