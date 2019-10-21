@@ -98,6 +98,7 @@ function LoadCmb() {
 
             cmbBD.appendChild(this.GetOption(dbs[i], i));
         }
+        okey();
     });
 }
 
