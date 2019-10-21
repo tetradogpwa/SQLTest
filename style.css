@@ -1,14 +1,11 @@
 .txt {
     width: 70%;
     height: 30%;
-    min-width:100px;
+    min-width: 100px;
 }
 
 #loader {
-/*Source center https://devcode.la/tutoriales/como-centrar-un-div-con-css/  */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    /*Source center https://devcode.la/tutoriales/como-centrar-un-div-con-css/  */
     border: 16px solid #f3f3f3;
     /* Light grey */
     border-top: 16px solid #3498db;
@@ -17,6 +14,12 @@
     width: 120px;
     height: 120px;
     animation: spin 2s linear infinite;
+}
+
+div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @keyframes spin {

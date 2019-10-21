@@ -46,6 +46,7 @@ function _LoadBDS() {
         document.getElementById("inpSQLSentence").value = localStorage.getItem(SQLSENTENCE);
         document.getElementById("loader").remove();
         elements = document.getElementsByClassName("unloaded");
+        console.log(elements);
         for (var i = 0; i < elements.length; i++)
             elements[i].classList.remove("unloaded");
 
