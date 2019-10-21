@@ -13,10 +13,10 @@ const cmbVar = "cmbBDs";
 var dbs;
 var toFinish;
 
-BD.CacheBD = "Cache_BD_SQLTest";
+
 
 window.onload = () => {
-
+    BD.CacheBD = "Cache_BD_SQLTest";
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/SQLTest/sw.js');
     }
