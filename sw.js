@@ -5,7 +5,7 @@ const CACHE_INMUTABLE = "CACHE_INMUTABLE_" + APP;
 const CACHE_SHELL = "CACHE_SHELL_" + APP;
 const CACHE_DINAMICO = "CACHE_DINAMICO_" + APP;
 const INMUTABLES = [
-
+    //como no va cambiar mejor que se descargue solo una vez :)
     "sql-wasm.js",
     "sql-wasm.wasm",
 
@@ -27,7 +27,7 @@ const SHELL = [
 
 self.addEventListener('install', e => {
 
-    var inmutables = self.FetchCache(CACHE_INMUTABLE + CACHE_VERSION, INMUTABLES);
+    var inmutables = self.FetchCache(CACHE_INMUTABLE, INMUTABLES, true);
     var shell = self.FetchCache(CACHE_SHELL + CACHE_VERSION, SHELL);
     console.log("installing version " + CACHE_VERSION);
     e.waitUntil(Promise.all([inmutables, shell]));
@@ -37,7 +37,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
     console.log("uninstalling version " + CACHE_VERSION_ANTERIOR);
-    e.waitUntil(Promise.all([caches.delete(CACHE_INMUTABLE + CACHE_VERSION_ANTERIOR),
+    e.waitUntil(Promise.all([
         caches.delete(CACHE_SHELL + CACHE_VERSION_ANTERIOR),
         caches.delete(CACHE_DINAMICO + CACHE_VERSION_ANTERIOR)
     ]));
@@ -68,11 +68,11 @@ self.addEventListener('fetch', e => {
 
 
 
-function FetchCache(cache_name, urls) {
+function FetchCache(cache_name, urls, ifNotExist = false) {
     return caches.open(cache_name)
         .then(cache => {
-
-            cache.addAll(urls);
-
+            if (ifNotExist)
+                cache.match(urls[0]).then((match) => { if (!match) cache.addAll(urls); });
+            else cache.addAll(urls);
         });
 }
