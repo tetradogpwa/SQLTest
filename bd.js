@@ -92,7 +92,7 @@ class BD {
     Clone() {
             return new Promise((okey, error) => {
                 var clon = new BD();
-                this.Export().then(e => { clon.Init = clon.Import(e); return clon.Init; })
+                this.Export().then(e => clon.Import(e))
                     .then(() => okey(clon)).catch(error);
 
             });
