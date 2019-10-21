@@ -65,8 +65,14 @@ class BD {
             okey(this);
         }).catch(error));
     }
-
-    //SQL
+    ExecuteURL(url, ...args) {
+            return fetch(url).then((result) => {
+                if (result.ok)
+                    return result.text();
+                else throw "No se puede obtener url=" + url;
+            }).then((data) => this.Execute(data, args));
+        }
+        //SQL
     Execute(strSQL, ...args) {
         return new Promise((okey, error) => okey(this._bd.exec(StringUtils.Format(strSQL, args))).catch(error));
     }
