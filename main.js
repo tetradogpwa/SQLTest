@@ -7,7 +7,9 @@ function Import(file) {
 }
 
 const SQLSENTENCE = "sqlSentence";
-
+const sqlVar = "inpSQLSentence";
+const resultVar = "inpSQLResult";
+const cmbVar = "cmbBDs";
 var dbs;
 
 window.onload = () => {
@@ -29,30 +31,29 @@ window.onload = () => {
 };
 
 function GetSelectedBD() {
-    return dbs.length > 0 ? dbs[document.getElementById("cmbBDs").selectedIndex] : null;
+    return dbs.length > 0 ? dbs[document.getElementById(cmbVar).selectedIndex] : null;
 }
 
 function _LoadBDS() {
     return new Promise((okey, error) => {
-        var selector = document.getElementById("cmbBDs");
+
         var elements;
 
-        for (i in dbs) {
+        this.LoadCmb().then(() => {
+            this.ChangeBD(0);
 
-            selector.appendChild(GetOption(dbs[i], i));
-        }
-        ChangeBD(0);
+            document.getElementById(sqlVar).value = localStorage.getItem(SQLSENTENCE);
+            document.getElementById("loader").remove();
+            elements = document.getElementsByClassName("unloaded");
 
-        document.getElementById("inpSQLSentence").value = localStorage.getItem(SQLSENTENCE);
-        document.getElementById("loader").remove();
-        elements = document.getElementsByClassName("unloaded");
+            for (var i = 0; i < elements.length; i++) {
+                console.log(elements[i]);
+                elements[i].classList.remove("unloaded");
+                console.log("removed :)");
+            }
 
-        for (var i = 0; i < elements.length; i++) {
-            elements[i].classList.remove("unloaded");
-            console.log(elements[i]);
-        }
-
-        okey();
+            okey();
+        });
     });
 }
 
@@ -66,29 +67,37 @@ function GetOption(bd, i) {
 
 function ChangeBD(index) {
     return new Promise((okey, error) => {
-        document.getElementById("cmbBDs").selectedIndex = index;
+        document.getElementById(cmbVar).selectedIndex = index;
         okey();
     });
 
 }
 
 function NewBD() {
-    return SetNewBD(new BD());
+    return this.SetNewBD(new BD());
 }
 
 function CloneBD() {
-    if (GetSelectedBD() != null)
-        GetSelectedBD().Clone().then(this.SetNewBD);
+    if (this.GetSelectedBD() != null)
+        this.GetSelectedBD().Clone().then(this.SetNewBD);
     else alert("Please select one first");
 }
 
 function SetNewBD(bd) {
-
-    var cmbBD = document.getElementById("cmbBDs");
     return bd.Init.then(() => {
         dbs.push(bd);
-        cmbBD.appendChild(GetOption(bd, cmbBD.length));
-        ChangeBD(dbs.length - 1);
+        return this.LoadCmb().then(() => this.ChangeBD(dbs.length - 1));
+    });
+}
+
+function LoadCmb() {
+    var cmbBD = document.getElementById(cmbVar);
+    return new Promise((okey, error) => {
+        cmbBD.childNodes.remove();
+        for (i in dbs) {
+
+            cmbBD.appendChild(this.GetOption(dbs[i], i));
+        }
     });
 }
 
@@ -96,24 +105,22 @@ function DeleteBD() {
     var found = false;
     var i;
     var selector;
-    var selectedBD = GetSelectedBD();
+    var selectedBD = this.GetSelectedBD();
     var opcion;
     if (selectedBD != null) {
-        DisableButtons();
+        this.DisableButtons();
         for (i = 0; i < dbs.length && !found; i++) {
             found = selectedBD.IdBD == dbs[i].IdBD;
         }
         i--;
 
-        selector = document.querySelectorAll("option");
-        selector[i].remove();
         localStorage.removeItem(selectedBD.IdBD);
         dbs.splice(i);
 
         if (dbs.length == 0)
-            opcion = NewBD();
-        else opcion = ChangeBD(0);
-        opcion.then(() => EnableButtons());
+            opcion = this.NewBD();
+        else opcion = this.LoadCmb().then(() => this.ChangeBD(0));
+        opcion.then(() => this.EnableButtons());
     } else alert("Please select one first");
 }
 
@@ -124,29 +131,29 @@ function ChangeButtons(status) {
 }
 
 function DisableButtons() {
-    ChangeButtons(false);
+    this.ChangeButtons(false);
 }
 
 function EnableButtons() {
-    ChangeButtons(true);
+    this.ChangeButtons(true);
 }
 
 function Clear() {
-    document.getElementById("inpSQLSentence").value = "";
+    document.getElementById(sqlVar).value = "";
     localStorage.removeItem(SQLSENTENCE);
 }
 
 function ExecuteSQL() {
-    var SQLSentence = document.getElementById("inpSQLSentence").value;
-    var inpResult = document.getElementById("inpSQLResult");
-    if (GetSelectedBD() != null) {
-        GetSelectedBD().Execute(SQLSentence)
+    var SQLSentence = document.getElementById(sqlVar).value;
+    var inpResult = document.getElementById(resultVar);
+    if (this.GetSelectedBD() != null) {
+        this.GetSelectedBD().Execute(SQLSentence)
             .then((resultado) => {
 
-                inpResult.value = "BD='" + GetSelectedBD().IdBD + "' result:'" + BD.ResultToString(resultado) + "'";
+                inpResult.value = "BD='" + this.GetSelectedBD().IdBD + "' result:'" + BD.ResultToString(resultado) + "'";
                 localStorage.setItem(SQLSENTENCE, SQLSentence);
             }).catch((error) => {
-                inpResult.value = "BD='" + GetSelectedBD().IdBD + "' error:'" + error + "'";
+                inpResult.value = "BD='" + this.GetSelectedBD().IdBD + "' '" + error + "'";
             });
     } else alert("Please select one first");
 }
@@ -157,7 +164,7 @@ function SaveAll() {
 }
 
 function Save() {
-    if (GetSelectedBD() != null)
-        GetSelectedBD().Save().then(() => alert("Saved successfully")).catch(() => alert("Error on save BD:" + GetSelectedBD().IdBD));
+    if (this.GetSelectedBD() != null)
+        this.GetSelectedBD().Save().then(() => alert("Saved successfully")).catch(() => alert("Error on save BD:" + this.GetSelectedBD().IdBD));
     else alert("Please select one first");
 }
