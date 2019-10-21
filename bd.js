@@ -11,13 +11,14 @@ function Import(file) {
 
 
 class BD {
-    BD.CacheBD = "CACHE_BD";
+
     static get HEADERLOCALHOST() { return "BDSQL" };
 
     //constructores
 
     constructor(idBD = "") {
-
+        if (!BD.CacheBD)
+            BD.CacheBD = "CACHE_BD";
         this.IdBD = idBD;
         if (this.IdBD != "") {
             this.Init = this.Load(this.IdBD);

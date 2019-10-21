@@ -16,13 +16,13 @@ var toFinish;
 
 
 window.onload = () => {
-    BD.CacheBD = "Cache_BD_SQLTest";
+
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/SQLTest/sw.js');
     }
 
     BD.LoadAll().then((bds) => {
-
+        BD.CacheBD = "Cache_BD_SQLTest";
         dbs = bds;
         if (dbs.length == 0) {
             dbs = [new BD()];
