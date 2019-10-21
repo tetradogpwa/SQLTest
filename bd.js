@@ -119,6 +119,7 @@ class BD {
     static SaveAll(...bds) {
         return new Promise((okey, error) => {
             var savs = [];
+            bds = ArrayUtils.Root(bds);
             for (var i = 0; i < bds.length; i++) {
                 savs.push(bds[i].Save());
             }

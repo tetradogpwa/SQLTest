@@ -46,9 +46,11 @@ function _LoadBDS() {
         document.getElementById("inpSQLSentence").value = localStorage.getItem(SQLSENTENCE);
         document.getElementById("loader").remove();
         elements = document.getElementsByClassName("unloaded");
-        console.log(elements);
-        for (var i = 0; i < elements.length; i++)
+
+        for (var i = 0; i < elements.length; i++) {
             elements[i].classList.remove("unloaded");
+            console.log(elements[i]);
+        }
 
         okey();
     });
@@ -92,7 +94,7 @@ function DeleteBD() {
     var selector;
     var selectedBD = GetSelectedBD();
     if (selectedBD != null) {
-
+        DisableButtons();
         for (i = 0; i < dbs.length && !found; i++) {
             found = selectedBD.IdBD == dbs[i].IdBD;
         }
@@ -106,8 +108,22 @@ function DeleteBD() {
         if (dbs.length == 0)
             NewBD();
         else ChangeBD(0);
-
+        EnableButtons();
     } else alert("Please select one first");
+}
+
+function ChangeButtons(status) {
+    var buttons = document.getElementsByTagName("button");
+    for (var i = 0; i < buttons.length; i++)
+        buttons[i].disabled = status;
+}
+
+function DisableButtons() {
+    ChangeButtons(false);
+}
+
+function EnableButtons() {
+    ChangeButtons(true);
 }
 
 function Clear() {
