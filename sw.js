@@ -27,8 +27,8 @@ const SHELL = [
 
 self.addEventListener('install', e => {
 
-    var inmutables = FetchCache(CACHE_INMUTABLE + CACHE_VERSION, INMUTABLES);
-    var shell = FetchCache(CACHE_SHELL + CACHE_VERSION, SHELL);
+    var inmutables = self.FetchCache(CACHE_INMUTABLE + CACHE_VERSION, INMUTABLES);
+    var shell = self.FetchCache(CACHE_SHELL + CACHE_VERSION, SHELL);
     console.log("installing version " + CACHE_VERSION);
     e.waitUntil(Promise.all(inmutables, shell));
 
