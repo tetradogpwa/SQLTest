@@ -70,7 +70,7 @@ function FetchCache(cache_name, urls) {
     return caches.open(cache_name)
         .then(cache => {
 
-            return cache.addAll(urls);
+            cache.addAll(urls);
 
         });
 }
