@@ -1,16 +1,13 @@
 const CACHE_VERSION_ANTERIOR = 6; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
-
-const CACHE_INMUTABLE = "CACHE_INMUTABLE_SQLTest";
-const CACHE_SHELL = "CACHE_SHELL_SQLTest";
-const CACHE_DINAMICO = "CACHE_DINAMICO_SQLTest";
+const APP = "SQLTest";
+const CACHE_INMUTABLE = "CACHE_INMUTABLE_" + APP;
+const CACHE_SHELL = "CACHE_SHELL_" + APP;
+const CACHE_DINAMICO = "CACHE_DINAMICO_" + APP;
 const INMUTABLES = [
 
     "sql-wasm.js",
     "sql-wasm.wasm",
-
-
-
 
 ];
 const SHELL = [
