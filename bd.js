@@ -34,12 +34,21 @@ class BD {
         return this._idBD;
     }
     set IdBD(id) {
-            this._idBD = id;
+            this._isChanged = false;
+            caches.open(BD.CacheBD).then((cache) => {
+                if (this._idBD in cache) {
+                    {
+                        cache.delete(this._idBD);
+                    }
+                    this._idBD = id;
+                }
+            }).finally(() => this._isChanged = true);
         }
         //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
             caches.open(BD.CacheBD).then((cache) => {
+                while (!this._isChanged);
                 if (idBD in cache) {
                     this.Import(cache[idBD]).then(() => okey()).catch(error);
 
@@ -55,6 +64,7 @@ class BD {
             this.Export()
                 .then(data => {
                     caches.open(BD.CacheBD).then((cache) => {
+                        while (!this._isChanged);
                         cache[this.IdBD] = data;
                         okey();
                     });
