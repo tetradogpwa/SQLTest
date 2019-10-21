@@ -44,13 +44,15 @@ function _LoadBDS() {
 
             document.getElementById(sqlVar).value = localStorage.getItem(SQLSENTENCE);
             document.getElementById("loader").remove();
-            elements = document.getElementsByClassName("unloaded");
+            do {
+                elements = document.getElementsByClassName("unloaded");
 
-            for (var i = 0; i < elements.length; i++) {
-                console.log(elements[i]);
-                elements[i].classList.remove("unloaded");
-                console.log("removed :)");
-            }
+                for (var i = 0; i < elements.length; i++) {
+                    console.log(elements[i]);
+                    elements[i].classList.remove("unloaded");
+                    console.log("removed :)");
+                }
+            } while (elements.length > 0);
 
             okey();
         });
