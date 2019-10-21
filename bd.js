@@ -81,6 +81,7 @@ class BD {
             okey(this);
         }).catch(error));
     }
+
     ExecuteURL(url, args, tratarRespuestaFetch = (r) => r.text()) {
             return fetch(url).then((result) => {
                 if (result.ok)
