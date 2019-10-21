@@ -1,25 +1,43 @@
-const CACHE_VERSION = 1.1;
+const CACHE_VERSION_ANTERIOR = 1; //subo aqui para no tener problemas :D
+const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
+
 const CACHE_INMUTABLE = "CACHE_INMUTABLE_SQLTest";
+const CACHE_SHELL = "CACHE_SHELL_SQLTest";
 const CACHE_DINAMICO = "CACHE_DINAMICO_SQLTest";
-const INMUTABLES = [];
+const INMUTABLES = [
+
+    "sql-wasm.js",
+    "sql-wasm.wasm",
+
+
+
+
+];
+const SHELL = [
+
+    "index.html",
+    "style.css",
+    "main.js",
+    "bd.js",
+    "utils.js",
+    "manifest.json"
+
+];
 
 
 self.addEventListener('install', e => {
 
-    e.waitUntil(caches.open(CACHE_INMUTABLE)
-        .then(cache => {
+    var inmutables = FetchCache(CACHE_INMUTABLE + CACHE_VERSION, INMUTABLES);
+    var shell = FetchCache(CACHE_SHELL + CACHE_VERSION, SHELL);
 
-            return cache.addAll(INMUTABLES);
-
-        }));
+    e.waitUntil(Promise.all(inmutables, shell));
 
 });
 
+
 self.addEventListener('activate', e => {
-
-    e.waitUntil(Promise.all([DeleteCache(CACHE_INMUTABLE), DeleteCache(CACHE_DINAMICO)]));
-
-
+    e.waitUntil(Promise.all(caches.delete(CACHE_INMUTABLE + CACHE_VERSION_ANTERIOR),
+        caches.delete(CACHE_SHELL + CACHE_VERSION_ANTERIOR)));
 
 });
 
@@ -45,18 +63,13 @@ self.addEventListener('fetch', e => {
 
 });
 
-function DeleteCache(name) {
-    return new Promise((okey, error) => {
-        caches.open(name).then(cache => {
 
-            cache.keys().then(keys => keys.forEach(
-                key => {
-                    cache.delete(key);
 
-                }
-            ));
+function FetchCache(cache_name, urls) {
+    return caches.open(cache_name)
+        .then(cache => {
+
+            return cache.addAll(urls);
+
         });
-        okey();
-    });
-
 }

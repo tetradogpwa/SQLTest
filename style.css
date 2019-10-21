@@ -1,6 +1,7 @@
 .txt {
     width: 70%;
     height: 30%;
+    min-width:100px;
 }
 
 #loader {
