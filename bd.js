@@ -17,8 +17,7 @@ class BD {
     //constructores
 
     constructor(idBD = "") {
-        if (!BD.CacheBD)
-            BD.CacheBD = "CACHE_BD";
+
         this.IdBD = idBD;
         if (this.IdBD != "") {
             this.Init = this.Load(this.IdBD);
@@ -29,14 +28,40 @@ class BD {
             });
         }
     }
+    static set CacheName(cacheBD) {
+        if (BD._CacheName && caches.has(BD_CacheName)) {
+            caches.open(BD._CacheName).then((cacheOut) => {
 
-    //propiedades
+                caches.delete(BD._CacheName).finally(() => {
+                    caches.delete(cacheBD).finally(() => {
+                        BD._CacheName = cacheBD;
+                        caches.open(BD._CacheName).then((cacheIn) => {
+
+                            cacheOut.keys().then((keys) => {
+                                for (k in keys) {
+                                    cacheIn.put(keys[k], cacheOut[keys[k]]);
+                                }
+                            });
+
+                        });
+                    });
+                });
+            });
+        } else BD._CacheName = cacheBD;
+
+    }
+    static get CacheName() {
+            if (!BD._CacheName)
+                BD._CacheName = "CACHE_BD";
+            return BD._CacheName;
+        }
+        //propiedades
     get IdBD() {
         return this._idBD;
     }
     set IdBD(id) {
             this._isChanged = false;
-            caches.open(BD.CacheBD).then((cache) => {
+            caches.open(BD.CacheName).then((cache) => {
                 if (this._idBD in cache) {
                     {
                         cache.delete(this._idBD);
@@ -48,7 +73,7 @@ class BD {
         //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-            caches.open(BD.CacheBD).then((cache) => {
+            caches.open(BD.CacheName).then((cache) => {
                 while (!this._isChanged);
                 if (idBD in cache) {
                     this.Import(cache[idBD]).then(() => okey()).catch(error);
@@ -64,7 +89,7 @@ class BD {
         return new Promise((okey, error) => {
             this.Export()
                 .then(data => {
-                    caches.open(BD.CacheBD).then((cache) => {
+                    caches.open(BD.CacheName).then((cache) => {
                         while (!this._isChanged);
                         cache[this.IdBD] = data;
                         okey();
@@ -127,7 +152,7 @@ class BD {
             var bds = [];
             var initBDS = [];
             var key;
-            caches.open(BD.CacheBD).then((cache) => {
+            caches.open(BD.CacheName).then((cache) => {
                 cache.keys().then((keys) => {
                     for (var i = 0; i < keys.length; i++) {
                         key = String(keys[i]);

@@ -20,9 +20,9 @@ window.onload = () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/SQLTest/sw.js');
     }
-
+    BD.CacheName = "Cache_BD_SQLTest";
     BD.LoadAll().then((bds) => {
-        BD.CacheBD = "Cache_BD_SQLTest";
+
         dbs = bds;
         if (dbs.length == 0) {
             dbs = [new BD()];
