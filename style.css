@@ -3,6 +3,13 @@
     height: 30%;
     min-width: 100px;
 }
+#loaderBox{
+width:100%;
+height:100%;
+display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 #loader {
     /*Source center https://devcode.la/tutoriales/como-centrar-un-div-con-css/  */
@@ -16,11 +23,7 @@
     animation: spin 2s linear infinite;
 }
 
-div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+
 
 @keyframes spin {
     0% {
