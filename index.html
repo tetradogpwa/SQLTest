@@ -23,8 +23,11 @@
         <button id="btnAdd" type="button" onclick="NewBD()">Add</button>
         <button id="btnClone" type="button" onclick="CloneBD()">Clone</button>
         <button id="btnDelete" type="button" onclick="DeleteBD()">Delete</button>
+
     </header>
-  <div id="loaderBox" >  <div id="loader"></div></div>
+    <div id="loaderBox">
+        <div id="loader"></div>
+    </div>
     <section class="unloaded">
         <article class="txt">
             <h4>SQL:</h4>
@@ -43,7 +46,7 @@
     <footer class="unloaded">
         <button type="button" onclick="SaveAll()">Save All</button>
         <button type="button" onclick="Save()">Save</button>
-
+        <button id="btnDownloadBD" type="button" onclick="DownloadBD()">Download BD</button>
     </footer>
 </body>
 

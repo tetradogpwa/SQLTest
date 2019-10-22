@@ -33,6 +33,19 @@ window.onload = () => {
 
 };
 
+function DownloadBD() {
+
+    GetSelectedBD().Export().then(ByteArrayUtils.ToByteArray).then((data) => {
+        var blob = new Blob([data], { type: "application/octet-stream" });
+        var link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = GetSelectedBD().Name + ".sqlite ";
+        link.click();
+
+    })
+
+}
+
 function GetSelectedBD() {
     return dbs.length > 0 ? dbs[document.getElementById(cmbVar).selectedIndex] : null;
 }
