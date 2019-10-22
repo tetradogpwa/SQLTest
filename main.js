@@ -39,7 +39,7 @@ function DownloadBD() {
         var blob = new Blob([data], { type: "application/octet-stream" });
         var link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = GetSelectedBD().Name + ".sqlite ";
+        link.download = GetSelectedBD().Name + ".sqlite";
         link.click();
 
     })
