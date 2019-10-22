@@ -6,7 +6,9 @@
 #loaderBox{
 width:100%;
 height:100%;
-
+display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #loader {
@@ -21,11 +23,7 @@ height:100%;
     animation: spin 2s linear infinite;
 }
 
-div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+
 
 @keyframes spin {
     0% {
