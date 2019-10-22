@@ -12,7 +12,14 @@ function Import(file) {
 
 class BD {
 
-    static get HEADERLOCALHOST() { return "BDSQL" };
+    static get Header() {
+        if (!BD._Header)
+            BD._Header = "BDSQL";
+        return BD._Header;
+    }
+    static set Header(header) {
+        BD._Header = header;
+    }
 
     //constructores
 
@@ -24,63 +31,53 @@ class BD {
         } else {
             this.Init = initSqlJs().then(SQL => {
                 this._bd = new SQL.Database();
-                this.IdBD = BD.HEADERLOCALHOST + new Date().getTime();
+                this.IdBD = BD.Header + new Date().getTime();
             });
         }
     }
-    static set CacheName(cacheBD) {
-        if (BD._CacheName && caches.has(BD_CacheName)) {
-            caches.open(BD._CacheName).then((cacheOut) => {
 
-                caches.delete(BD._CacheName).finally(() => {
-                    caches.delete(cacheBD).finally(() => {
-                        BD._CacheName = cacheBD;
-                        caches.open(BD._CacheName).then((cacheIn) => {
 
-                            cacheOut.keys().then((keys) => {
-                                for (k in keys) {
-                                    cacheIn.put(keys[k], cacheOut[keys[k]]);
-                                }
-                            });
 
-                        });
-                    });
-                });
-            });
-        } else BD._CacheName = cacheBD;
+    static get CacheNameBD() {
+        return caches.open("BD.Name");
+    }
+
+    static get CacheDataBD() {
+        return caches.open("BD.Data");
+    }
+
+
+
+    get Name() {
+        if (!this._name)
+            this._name = "BDName" + new Date().getTime();
+        return this._name;
+    }
+    set Name(name) {
+        this._name = name;
 
     }
-    static get CacheName() {
-            if (!BD._CacheName)
-                BD._CacheName = "CACHE_BD";
-            return BD._CacheName;
-        }
-        //propiedades
-    get IdBD() {
-        return this._idBD;
-    }
-    set IdBD(id) {
-            this._isChanged = false;
-            caches.open(BD.CacheName).then((cache) => {
-                if (this._idBD in cache) {
-                    {
-                        cache.delete(this._idBD);
-                    }
-                    this._idBD = id;
-                }
-            }).finally(() => this._isChanged = true);
-        }
-        //metodos cargar/guardar
+
+
+    //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-            caches.open(BD.CacheName).then((cache) => {
-                while (!this._isChanged);
+            BD.CacheDataBD.then((cache) => {
+
                 if (idBD in cache) {
-                    this.Import(cache[idBD]).then(() => okey()).catch(error);
+                    this.Import(cache[idBD]).then(() => {
 
-                } else okey();
+                        BD.CacheNameBD.then((cacheName) => {
+                            this.Name = cacheName[idBD];
+                            okey(this);
+                        });
 
-            })
+
+                    }).catch(error);
+
+                } else error("imposible load id='" + idBD + "' not found.");
+
+            });
 
 
         });
@@ -89,10 +86,15 @@ class BD {
         return new Promise((okey, error) => {
             this.Export()
                 .then(data => {
-                    caches.open(BD.CacheName).then((cache) => {
-                        while (!this._isChanged);
-                        cache[this.IdBD] = data;
-                        okey();
+                    BD.CacheDataBD.then((cache) => {
+                        //set data
+                        cache.put(this.idBD, data);
+                        BD.CacheNameBD.then((cacheNames) => {
+                            //set name
+                            cacheNames.put(this.IdBD, this.Name);
+                            okey(this);
+                        })
+
                     });
                 }).catch(error);
         });
@@ -142,7 +144,8 @@ class BD {
             return new Promise((okey, error) => {
                 var clon = new BD();
                 this.Export().then(e => clon.Import(e))
-                    .then(() => okey(clon)).catch(error);
+                    .then(() => { clon.Name = this.Name + "_Clon";
+                        okey(clon); }).catch(error);
 
             });
         }
@@ -152,11 +155,11 @@ class BD {
             var bds = [];
             var initBDS = [];
             var key;
-            caches.open(BD.CacheName).then((cache) => {
+            BD.CacheDataBD.then((cache) => {
                 cache.keys().then((keys) => {
                     for (var i = 0; i < keys.length; i++) {
                         key = String(keys[i]);
-                        if (key.startsWith(BD.HEADERLOCALHOST)) {
+                        if (key.startsWith(BD.Header)) {
 
                             bds.push(new BD(key));
                             initBDS.push(bds[bds.length - 1].Init);
@@ -181,7 +184,22 @@ class BD {
 
         });
     }
+    static DeleteFromCache(...bds) {
+        bds = ArrayUtils.Root(bds);
+        return BD.CacheDataBD.then((cacheData) => {
+            BD.CacheNameBD.then((cacheName) => {
+                for (i in bds) {
+                    cacheData.Delete(bds[i].IdBD);
+                    cacheName.Delete(bds[i].IdBD);
+                }
 
+            });
+
+        });
+    }
+
+
+    //string result part
     static ResultToString(result) {
         var text = "";
         if (result.length != 0) {

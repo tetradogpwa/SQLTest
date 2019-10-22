@@ -20,7 +20,7 @@ window.onload = () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/SQLTest/sw.js');
     }
-    BD.CacheName = "Cache_BD_SQLTest";
+    BD.Header = "BD_SQLTester";
     BD.LoadAll().then((bds) => {
 
         dbs = bds;
@@ -47,7 +47,7 @@ function _LoadBDS() {
 
             document.getElementById(sqlVar).value = localStorage.getItem(SQLSENTENCE);
             document.getElementById("loader").remove();
-            do {
+            do { //esto lo hago porque por alguna razón el JS falla y no los coge todos a la vez...
                 elements = document.getElementsByClassName("unloaded");
 
                 for (var i = 0; i < elements.length; i++) {
@@ -66,7 +66,7 @@ function GetOption(bd, i) {
     var option;
     option = document.createElement("option");
     option.setAttribute("value", i);
-    option.innerHTML = bd.IdBD;
+    option.innerHTML = bd.Name;
     return option;
 }
 
@@ -117,8 +117,7 @@ function DeleteBD() {
             found = selectedBD.IdBD == dbs[i].IdBD;
         }
         i--;
-
-        localStorage.removeItem(selectedBD.IdBD);
+        BD.DeleteFromCache(dbs[i]);
         dbs.splice(i);
 
         if (dbs.length == 0)
@@ -153,14 +152,15 @@ function Clear() {
 function ExecuteSQL() {
     var SQLSentence = document.getElementById(sqlVar).value;
     var inpResult = document.getElementById(resultVar);
-    if (this.GetSelectedBD() != null) {
-        this.GetSelectedBD().Execute(SQLSentence)
+    var selectedBD = this.GetSelectedBD();
+    if (selectedBD != null) {
+        selectedBD.Execute(SQLSentence)
             .then((resultado) => {
 
-                inpResult.value = "BD='" + this.GetSelectedBD().IdBD + "' result:'" + BD.ResultToString(resultado) + "'";
+                inpResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(resultado) + "'";
                 localStorage.setItem(SQLSENTENCE, SQLSentence);
             }).catch((error) => {
-                inpResult.value = "BD='" + this.GetSelectedBD().IdBD + "' '" + error + "'";
+                inpResult.value = "BD='" + selectedBD.Name + "' '" + error + "'";
             });
     } else alert("Please select one first");
 }
@@ -171,7 +171,8 @@ function SaveAll() {
 }
 
 function Save() {
-    if (this.GetSelectedBD() != null)
-        this.GetSelectedBD().Save().then(() => alert("Saved successfully")).catch(() => alert("Error on save BD:" + this.GetSelectedBD().IdBD));
+    var selectedBD = this.GetSelectedBD();
+    if (selectedBD != null)
+        selectedBD.Save().then(() => alert("Saved successfully")).catch(() => alert("Error on save BD:" + selectedBD.IdBD));
     else alert("Please select one first");
 }
