@@ -201,8 +201,8 @@ class BD {
         return BD.CacheDataBD.then((cacheData) => {
             BD.CacheNameBD.then((cacheName) => {
                 for (var i = 0; i < bds.length; i++) {
-                    cacheData.Delete(bds[i].IdBD);
-                    cacheName.Delete(bds[i].IdBD);
+                    cacheData.delete(bds[i].IdBD);
+                    cacheName.delete(bds[i].IdBD);
                 }
 
             });
