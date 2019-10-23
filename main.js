@@ -64,8 +64,10 @@ function AddToList(bd) {
     option.setAttribute("value", bd.IdBD);
     option.innerText = bd.Name;
 
-    cmb.childrenList.push(option);
+    cmb.appendChild(option);
     dataBaseList.push(bd);
+    console.log(cmb.childNodes);
+    console.log(dataBaseList);
 }
 
 function DeleteBD() {
