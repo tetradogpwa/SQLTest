@@ -53,7 +53,7 @@ function NewBD() {
 
 function CloneBD() {
     //clona la BD actual y la añade a la lista
-    DataBase().CloneBD().then(AddToList);
+    DataBase().Clone().then(AddToList);
 }
 
 function AddToList(bd) {
@@ -66,8 +66,6 @@ function AddToList(bd) {
 
     cmb.appendChild(option);
     dataBaseList.push(bd);
-    console.log(cmb.childNodes);
-    console.log(dataBaseList);
 }
 
 function DeleteBD() {
