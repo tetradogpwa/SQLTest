@@ -75,10 +75,10 @@ class BD {
             BD.CacheDataBD.then((cache) => {
 
                 if (idBD in cache) {
-                    this.Import(cache[idBD]).then(() => {
+                    this.Import(cache[idBD].blob()).then(() => {
 
                         BD.CacheNameBD.then((cacheName) => {
-                            this.Name = cacheName[idBD];
+                            this.Name = cacheName[idBD].text();
                             okey(this);
                         });
 
@@ -98,10 +98,10 @@ class BD {
                 .then(data => {
                     BD.CacheDataBD.then((cache) => {
                         //set data
-                        cache.put(this.idBD, data); //guarda byte[]??
+                        cache.put(this.idBD, new Response(data, { headers: { 'Conten-Type': 'application/octet-stream' } }));
                         BD.CacheNameBD.then((cacheNames) => {
                             //set name
-                            cacheNames.put(this.IdBD, this.Name);
+                            cacheNames.put(this.IdBD, new Response(this.Name, { headers: { 'Conten-Type': 'text/plain' } }));
                             okey(this);
                         })
 
@@ -200,7 +200,7 @@ class BD {
         bds = ArrayUtils.Root(bds);
         return BD.CacheDataBD.then((cacheData) => {
             BD.CacheNameBD.then((cacheName) => {
-                for (i in bds) {
+                for (var i = 0; i < bds.length; i++) {
                     cacheData.Delete(bds[i].IdBD);
                     cacheName.Delete(bds[i].IdBD);
                 }
