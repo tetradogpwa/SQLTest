@@ -60,9 +60,11 @@ function AddToList(bd) {
     //añade a la lista y al cm
     var cmb = document.getElementById(cmbBDId);
     var option = document.createElement("option");
+
     option.setAttribute("value", bd.IdBD);
     option.innerText = bd.Name;
-    cmb.children.push(option);
+
+    cmb.childrenList.push(option);
     dataBaseList.push(bd);
 }
 
