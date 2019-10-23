@@ -12,6 +12,32 @@ function Import(file) {
 
 class BD {
 
+
+    //constructores
+
+    constructor(idBD = "") {
+
+            this.IdBD = idBD;
+            this.Init = initSqlJs().then(SQL => {
+                return new Promise((okey, error) => {
+                    this._bd = new SQL.Database();
+                    okey();
+                });
+
+            });
+
+            if (this.IdBD != "") {
+                this.Init = this.Init.then(() => this.Load(this.IdBD));
+            } else {
+                this.Init = this.Init.then(() => {
+                    return new Promise((okey, error) => {
+                        this.IdBD = BD.Header + new Date().getTime();
+                        okey();
+                    });
+                });
+            }
+        }
+        //static properties
     static get Header() {
         if (!BD._Header)
             BD._Header = "BDSQL";
@@ -20,22 +46,6 @@ class BD {
     static set Header(header) {
         BD._Header = header;
     }
-
-    //constructores
-
-    constructor(idBD = "") {
-
-        this.IdBD = idBD;
-        if (this.IdBD != "") {
-            this.Init = this.Load(this.IdBD);
-        } else {
-            this.Init = initSqlJs().then(SQL => {
-                this._bd = new SQL.Database();
-                this.IdBD = BD.Header + new Date().getTime();
-            });
-        }
-    }
-
 
 
     static get CacheNameBD() {
@@ -47,10 +57,10 @@ class BD {
     }
 
 
-
+    //property
     get Name() {
         if (!this._name)
-            this._name = "BDName" + new Date().getTime();
+            this._name = "BD" + new Date().getTime();
         return this._name;
     }
     set Name(name) {
@@ -88,7 +98,7 @@ class BD {
                 .then(data => {
                     BD.CacheDataBD.then((cache) => {
                         //set data
-                        cache.put(this.idBD, data);
+                        cache.put(this.idBD, data); //guarda byte[]??
                         BD.CacheNameBD.then((cacheNames) => {
                             //set name
                             cacheNames.put(this.IdBD, this.Name);
@@ -100,12 +110,12 @@ class BD {
         });
     }
     Export() {
-        return new Promise((okey, error) => okey(ByteArrayUtils.ToHex(this._bd.export())).catch(error));
+        return new Promise((okey, error) => okey(this._bd.export()).catch(error));
     }
 
     Import(dataBD) {
         return new Promise((okey, error) => initSqlJs().then(SQL => {
-            this._bd = new SQL.Database(ByteArrayUtils.ToByteArray(dataBD));
+            this._bd = new SQL.Database(dataBD);
             okey(this);
         }).catch(error));
     }
@@ -144,8 +154,10 @@ class BD {
             return new Promise((okey, error) => {
                 var clon = new BD();
                 this.Export().then(e => clon.Import(e))
-                    .then(() => { clon.Name = this.Name + "_Clon";
-                        okey(clon); }).catch(error);
+                    .then(() => {
+                        clon.Name = this.Name + "_Clon";
+                        okey(clon);
+                    }).catch(error);
 
             });
         }

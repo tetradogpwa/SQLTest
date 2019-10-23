@@ -1,17 +1,3 @@
-.txt {
-    width: 70%;
-    height: 30%;
-    min-width: 100px;
-}
-#loaderBox{
-	width:100%;
-	height:100%;
-	display: flex;
-        justify-content: center;
-        align-items: center;
-	vertical-align: middle
-}
-
 #loader {
     /*Source center https://devcode.la/tutoriales/como-centrar-un-div-con-css/  */
     border: 16px solid #f3f3f3;
@@ -19,12 +5,15 @@
     border-top: 16px solid #3498db;
     /* Blue */
     border-radius: 50%;
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
+    top: 35%;
+    left: 35%;
     animation: spin 2s linear infinite;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
 }
-
-
 
 @keyframes spin {
     0% {
@@ -35,6 +24,6 @@
     }
 }
 
-.unloaded {
+.postLoader {
     display: none;
 }

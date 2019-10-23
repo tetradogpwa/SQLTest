@@ -15,39 +15,42 @@
 </head>
 
 <body>
-
-    <header class="unloaded">
-        <h1>SQL Test</h1>
-        <select id="cmbBDs" onchange="if (this.selectedIndex) ChangeBD(this.selectedIndex);">
+    <div id="loader"></div>
+    <div id="contentBox" class="postLoader">
+        <header>
+            <h1>SQL Test</h1>
+            <select id="cmbBD" onchange="if (this.selectedIndex) ChangeBD(this.selectedIndex);">
         </select>
-        <button id="btnAdd" type="button" onclick="NewBD()">Add</button>
-        <button id="btnClone" type="button" onclick="CloneBD()">Clone</button>
-        <button id="btnDelete" type="button" onclick="DeleteBD()">Delete</button>
+            <button type="button" onclick="NewBD()">Add</button>
+            <button type="button" onclick="CloneBD()">Clone</button>
+            <button type="button" onclick="DeleteBD()">Delete</button>
+            <button type="button" onclick="Save()">Save</button>
+            <button type="button" onclick="DownloadBD()">Download</button>
+        </header>
 
-    </header>
-    <div id="loaderBox">
-        <div id="loader"></div>
+        <section>
+            <article>
+                <h4>SQL:</h4>
+                <textarea id="txtSql" type="text" rows="10"></textarea>
+            </article>
+            <article>
+                <button type="button" onclick="ExecuteSQL()">Execute</button>
+                <button type="button" onclick="Clear()">Clear</button>
+
+            </article>
+            <article>
+                <h4>Output:</h4>
+                <textarea id="txtResult" type="text" readonly="true" rows="10"></textarea>
+            </article>
+        </section>
+        <footer>
+
+            <button type="button" onclick="UpLoadBD()">Load</button>
+            <button type="button" onclick="SaveAll()">Save All</button>
+            <button type="button" onclick="DownloadAllBD()">Download All</button>
+
+        </footer>
     </div>
-    <section class="unloaded">
-        <article class="txt">
-            <h4>SQL:</h4>
-            <textarea id="inpSQLSentence" class="txt" type="text"></textarea>
-        </article>
-        <article>
-            <button id="btnExecuteSQL" type="button" onclick="ExecuteSQL()">Execute</button>
-            <button id="btnExecuteSQL" type="button" onclick="Clear()">Clear</button>
-
-        </article>
-        <article class="txt">
-            <h4>Output:</h4>
-            <textarea id="inpSQLResult" class="txt" type="text" readonly="true"></textarea>
-        </article>
-    </section>
-    <footer class="unloaded">
-        <button type="button" onclick="SaveAll()">Save All</button>
-        <button type="button" onclick="Save()">Save</button>
-        <button id="btnDownloadBD" type="button" onclick="DownloadBD()">Download BD</button>
-    </footer>
 </body>
 
 </html>
