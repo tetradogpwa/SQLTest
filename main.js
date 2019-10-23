@@ -77,7 +77,10 @@ function DeleteBD() {
         encontrado = cmb.childNodes[i].value == DataBase().IdBD;
     i--; //antes de salir le suma uno por eso le resto :)
     if (encontrado) {
-        cmb.childNodes.remove(cmb.childNodes[i]);
+        BD.DeleteFromCache(DataBase());
+        dataBaseList.slice(cmb.selectedIndex);
+        cmb.removeChild(cmb.childNodes[i]); //de momento elimina
+
     }
 }
 
