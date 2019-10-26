@@ -61,3 +61,38 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
         }
     }
 }
+class CacheUtils{
+
+static Add(nombreCache,key,value)
+{
+    return cache.open(nombreCache).then((cache)=>{
+    
+        cache.put((key is Request)?key:Request(key),(value is Response)?value:new Response(value));
+    
+    
+    });
+}
+ static AddByteArray(nombreCache,key,arrayBytes,typeData="application/octet-stream"){
+ reutnr CacheUtils.Add(nombreCache,key,(arrayBytes is Response||arrayBytes is Blob)?arrayBytes:new Blob(arrayBytes, { type: typeData }));
+ }
+ //hacer más tipos :D
+ static Get(nombreCache,key){
+ return cache.open(nombreCache).then(cache=>{
+ 
+     return cache.match((key is Request)?key:new Request(key));
+ });
+     
+ }
+
+    static GetByteArray(nombreCache,key){
+    return Get(nombreCache,key).then((result)=>result.blob());
+    
+    }
+   static Delete(nombreCache,key){
+   return cache.open(nombreCache).then((cache)=>cache.delete((key is Request)?key:new Request(key));
+   }
+    
+   
+
+
+}
