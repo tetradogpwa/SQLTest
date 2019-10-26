@@ -49,11 +49,11 @@ class BD {
 
 
     static get CacheNameBD() {
-        return caches.open("BD.Name");
+        return "BD.Name";
     }
 
     static get CacheDataBD() {
-        return caches.open("BD.Data");
+        return "BD.Data";
     }
 
 
@@ -72,22 +72,21 @@ class BD {
     //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-            BD.CacheDataBD.then((cache) => {
+           CacheUtils.GetByteArray(CacheDataBD,idBD).then((data) => {
 
-                if (idBD in cache) {
-                    this.Import(cache[idBD].blob()).then(() => {
+               
+                    this.Import(data).then(() => {
 
-                        BD.CacheNameBD.then((cacheName) => {
-                            this.Name = cacheName[idBD].text();
+                   CacheUtils.GetString(CacheNameBD,idBB).then((name) => {
+                            this.Name = name;
                             okey(this);
                         });
 
 
                     }).catch(error);
 
-                } else error("imposible load id='" + idBD + "' not found.");
-
-            });
+                
+            }).catch(()=>error("imposible load id='" + idBD + "' not found."));
 
 
         });
@@ -96,12 +95,11 @@ class BD {
         return new Promise((okey, error) => {
             this.Export()
                 .then(data => {
-                    BD.CacheDataBD.then((cache) => {
-                        //set data
-                        cache.put(this.idBD, new Response(data, { headers: { 'Conten-Type': 'application/octet-stream' } }));
-                        BD.CacheNameBD.then((cacheNames) => {
-                            //set name
-                            cacheNames.put(this.IdBD, new Response(this.Name, { headers: { 'Conten-Type': 'text/plain' } }));
+                    //set data
+                   CacheUtils.AddByteArray(CacheDataBD,idBD,data).then(()=>{
+                      //set name
+                       CacheUtils.AddString(CacheNameBD,idBD,this.Name).then(()=>{
+                          
                             okey(this);
                         })
 
@@ -198,8 +196,8 @@ class BD {
     }
     static DeleteFromCache(...bds) {
         bds = ArrayUtils.Root(bds);
-        return BD.CacheDataBD.then((cacheData) => {
-            BD.CacheNameBD.then((cacheName) => {
+        return   //falta hacer...
+             CacheUtils.Delete(CacheDataBD,idBD).then(()=>{
                 for (var i = 0; i < bds.length; i++) {
                     cacheData.delete(bds[i].IdBD);
                     cacheName.delete(bds[i].IdBD);
