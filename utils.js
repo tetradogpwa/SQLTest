@@ -186,7 +186,7 @@ class CacheUtils {
     static Set(nombreCache, key, value) {
         return caches.open(nombreCache).then((cache) => {
 
-            cache.put((key instanceof Request) ? key : Request(key), (value instanceof Response) ? value : new Response(value));
+            cache.put((key instanceof Request) ? key : new Request(key), (value instanceof Response) ? value : new Response(value));
 
 
         });
