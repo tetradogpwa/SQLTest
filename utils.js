@@ -106,13 +106,13 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
 }
 class SelectUtils {
     static GetAt(select, position) {
-        return select.ChildNodes()[position];
+        return select.options[position];
     }
     static Count(select) {
-        return select.ChildNodes().length;
+        return select.options.length;
     }
     static RemoveAt(select, position) {
-        select.remove(position);
+        ArrayUtils.RemoveAt(select.options, position);
     }
     static Add(select, value, innerText) {
         var option = SelectUtils.GetOption(value, innerText);
@@ -121,9 +121,7 @@ class SelectUtils {
     }
     static Push(select, value, innerText) {
         var option = SelectUtils.GetOption(value, innerText);
-        if (select.options.length > 0)
-            select.options.insertBefore(option, select.options[0]);
-        else select.options.add(option);
+        ArrayUtils.Push(select.options, option);
         return option;
     }
     static GetOption(value, innerText) {
