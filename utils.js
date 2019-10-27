@@ -107,7 +107,7 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
 class CacheUtils {
 
     static Set(nombreCache, key, value) {
-        return cache.open(nombreCache).then((cache) => {
+        return caches.open(nombreCache).then((cache) => {
 
             cache.put((key instanceof Request) ? key : Request(key), (value instanceof Response) ? value : new Response(value));
 
@@ -129,7 +129,7 @@ class CacheUtils {
         }
         //hacer más tipos :D
     static Get(nombreCache, key) {
-        return cache.open(nombreCache).then(cache => {
+        return caches.open(nombreCache).then(cache => {
 
             return cache.match((key instanceof Request) ? key : new Request(key));
         });
@@ -154,11 +154,11 @@ class CacheUtils {
         return Delete(nombreCache, key);
     }
     static Delete(nombreCache, key) {
-        return cache.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
+        return caches.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
     }
 
     static GetKeys(nombreCache, toInclude = "") {
-        return cache.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
+        return caches.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
             for (var i = keys.length - 1; i >= 0; i--) {
                 if (!keys[i].includes(toInclude)) {
                     ArrayUtils.RemoveAt(keys, i);
