@@ -63,15 +63,14 @@ class ArrayUtils {
 
 }
 
-class Download {
-    static File(name, data, typeData) {
-        var blob = new Blob([data], { type: typeData });
-        var link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        link.download = name;
-        link.click();
-    }
+function DownloadFile(name, data, typeData) {
+    var blob = new Blob([data], { type: typeData });
+    var link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = name;
+    link.click();
 }
+
 //https://stackoverflow.com/questions/14603205/how-to-convert-hex-string-into-a-bytes-array-and-a-bytes-array-in-the-hex-strin from crypto-js
 class ByteArrayUtils {
 

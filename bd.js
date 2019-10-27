@@ -72,12 +72,12 @@ class BD {
     //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-            CacheUtils.GetByteArray(CacheData, idBD).then((data) => {
+            CacheUtils.GetByteArray(BD.CacheData, idBD).then((data) => {
 
 
                 this.Import(data).then(() => {
 
-                    CacheUtils.GetString(CacheName, idBB).then((name) => {
+                    CacheUtils.GetString(BD.CacheName, idBB).then((name) => {
                         this.Name = name;
                         okey(this);
                     });
@@ -96,9 +96,9 @@ class BD {
             this.Export()
                 .then(data => {
                     //set data
-                    CacheUtils.SetByteArray(CacheData, idBD, data).then(() => {
+                    CacheUtils.SetByteArray(BD.CacheData, idBD, data).then(() => {
                         //set name
-                        CacheUtils.SetString(CacheName, idBD, this.Name).then(() => {
+                        CacheUtils.SetString(BD.CacheName, idBD, this.Name).then(() => {
 
                             okey(this);
                         })
@@ -162,7 +162,7 @@ class BD {
         //cargar/guardar
     static LoadAll() {
         return new Promise((okey, error) => {
-            CacheUtils.GetKeys(CacheData, BD.Header).then((keysFiltradas) => {
+            CacheUtils.GetKeys(BD.CacheData, BD.Header).then((keysFiltradas) => {
                 var bds = [];
                 var initBDS = [];
                 for (var i = 0; i < keysFiltradas.length; i++) {

@@ -108,7 +108,7 @@ function DownloadBD() {
 function Download(bd) {
 
     bd.Export().then((data) => {
-        Download.File(bd.Name + ".sqlite", data, "application/octet-stream");
+        DownloadFile(bd.Name + ".sqlite", data, "application/octet-stream");
 
     });
 }
