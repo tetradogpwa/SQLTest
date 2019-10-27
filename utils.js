@@ -61,38 +61,60 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
         }
     }
 }
-class CacheUtils{
+class CacheUtils {
 
-static Add(nombreCache,key,value)
-{
-    return cache.open(nombreCache).then((cache)=>{
-    
-        cache.put((key is Request)?key:Request(key),(value is Response)?value:new Response(value));
-    
-    
-    });
-}
- static AddByteArray(nombreCache,key,arrayBytes,typeData="application/octet-stream"){
- reutnr CacheUtils.Add(nombreCache,key,(arrayBytes is Response||arrayBytes is Blob)?arrayBytes:new Blob(arrayBytes, { type: typeData }));
- }
- //hacer más tipos :D
- static Get(nombreCache,key){
- return cache.open(nombreCache).then(cache=>{
- 
-     return cache.match((key is Request)?key:new Request(key));
- });
-     
- }
+    static Set(nombreCache, key, value) {
+        return cache.open(nombreCache).then((cache) => {
 
-    static GetByteArray(nombreCache,key){
-    return Get(nombreCache,key).then((result)=>result.blob());
-    
+            cache.put((key instanceof Request) ? key : Request(key), (value instanceof Response) ? value : new Response(value));
+
+
+        });
     }
-   static Delete(nombreCache,key){
-   return cache.open(nombreCache).then((cache)=>cache.delete((key is Request)?key:new Request(key));
-   }
-    
-   
+    static SetByteArray(nombreCache, key, arrayBytes, typeData = "application/octet-stream") {
+        return CacheUtils.Set(nombreCache, key, (arrayBytes instanceof Response || arrayBytes instanceof Blob) ? arrayBytes : new Blob(arrayBytes, { type: typeData }));
+    }
+    static SetCss(nombreCache, key, strCss) {
+        return CacheUtils.SetString(nombreCache, key, strCss, "text/css");
+    }
+    static SetJson(nombreCache, key, strCss) {
+            return CacheUtils.SetString(nombreCache, key, strCss, "application/json");
+        }
+        //falta acabar
+    static SetString(nombreCache, key, string, typeData = "text/plain") {
+            return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response("body{" + arrayBytes + "}", { headers: { "Content-Type": typeData } }));
+        }
+        //hacer más tipos :D
+    static Get(nombreCache, key) {
+        return cache.open(nombreCache).then(cache => {
+
+            return cache.match((key instanceof Request) ? key : new Request(key));
+        });
+
+    }
+    static GetJson(nombreCache, key) {
+        return CacheUtils.Get(nombreCache, key).then((j) => j.json());
+    }
+    static GetCss(nombreCache, key) {
+        return CacheUtils.GetString(nombreCache, key);
+    }
+    static GetString(nombreCache, key) {
+        return Get(nombreCache, key).then((result) => result.text());
+    }
+
+    static GetByteArray(nombreCache, key) {
+        return Get(nombreCache, key).then((result) => result.blob());
+
+    }
+
+    static Remove(nombreCache, key) {
+        return Delete(nombreCache, key);
+    }
+    static Delete(nombreCache, key) {
+        return cache.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
+    }
+
+
 
 
 }

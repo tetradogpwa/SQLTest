@@ -72,21 +72,21 @@ class BD {
     //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-           CacheUtils.GetByteArray(CacheDataBD,idBD).then((data) => {
-
-               
-                    this.Import(data).then(() => {
-
-                   CacheUtils.GetString(CacheNameBD,idBB).then((name) => {
-                            this.Name = name;
-                            okey(this);
-                        });
+            CacheUtils.GetByteArray(CacheDataBD, idBD).then((data) => {
 
 
-                    }).catch(error);
+                this.Import(data).then(() => {
 
-                
-            }).catch(()=>error("imposible load id='" + idBD + "' not found."));
+                    CacheUtils.GetString(CacheNameBD, idBB).then((name) => {
+                        this.Name = name;
+                        okey(this);
+                    });
+
+
+                }).catch(error);
+
+
+            }).catch(() => error("imposible load id='" + idBD + "' not found."));
 
 
         });
@@ -96,10 +96,10 @@ class BD {
             this.Export()
                 .then(data => {
                     //set data
-                   CacheUtils.AddByteArray(CacheDataBD,idBD,data).then(()=>{
-                      //set name
-                       CacheUtils.AddString(CacheNameBD,idBD,this.Name).then(()=>{
-                          
+                    CacheUtils.SetByteArray(CacheDataBD, idBD, data).then(() => {
+                        //set name
+                        CacheUtils.SetString(CacheNameBD, idBD, this.Name).then(() => {
+
                             okey(this);
                         })
 
@@ -162,50 +162,44 @@ class BD {
         //cargar/guardar
     static LoadAll() {
         return new Promise((okey, error) => {
-            var bds = [];
-            var initBDS = [];
-            var key;
-            BD.CacheDataBD.then((cache) => {
-                cache.keys().then((keys) => {
-                    for (var i = 0; i < keys.length; i++) {
-                        key = String(keys[i]);
-                        if (key.startsWith(BD.Header)) {
+            CacheUtils.GetKeys(CacheDataBD, BD.Header).then((keysFiltradas) => {
+                var bds = [];
+                var initBDS = [];
+                for (var i = 0; i < keysFiltradas.length; i++) {
 
-                            bds.push(new BD(key));
-                            initBDS.push(bds[bds.length - 1].Init);
-                        }
-                    }
-                    Promise.all(initBDS).then(() => okey(bds)).catch(error);
+                    bds.push(new BD(keysFiltradas));
+                    initBDS.push(bds[bds.length - 1].Init);
 
-                });
-            });
+                }
+                return Promise.all(initBDS).then(() => { return bds; });
 
+            }).then(okey).catch(error);
         });
+
+
+
     }
 
     static SaveAll(...bds) {
-        return new Promise((okey, error) => {
-            var savs = [];
-            bds = ArrayUtils.Root(bds);
-            for (var i = 0; i < bds.length; i++) {
-                savs.push(bds[i].Save());
-            }
-            Promise.all(savs).then(() => okey()).catch(error);
+        var savs = [];
+        bds = ArrayUtils.Root(bds);
+        for (var i = 0; i < bds.length; i++) {
+            savs.push(bds[i].Save());
+        }
+        return Promise.all(savs);
 
-        });
+
     }
     static DeleteFromCache(...bds) {
         bds = ArrayUtils.Root(bds);
-        return   //falta hacer...
-             CacheUtils.Delete(CacheDataBD,idBD).then(()=>{
-                for (var i = 0; i < bds.length; i++) {
-                    cacheData.delete(bds[i].IdBD);
-                    cacheName.delete(bds[i].IdBD);
-                }
+        promesas = [];
+        for (var i = 0; i < bds.length; i++) {
+            promesas.push(CacheUtils.Delete(BD.CacheDataBD, bds[i].IdBD));
+            promesas.push(CacheUtils.Delete(BD.CacheNameBD, bds[i].IdBD));
+        }
+        return Promise.all(promesas);
 
-            });
 
-        });
     }
 
 
