@@ -192,7 +192,7 @@ class BD {
     }
     static DeleteFromCache(...bds) {
         bds = ArrayUtils.Root(bds);
-        promesas = [];
+        var promesas = [];
         for (var i = 0; i < bds.length; i++) {
             promesas.push(CacheUtils.Delete(BD.CacheData, bds[i].IdBD));
             promesas.push(CacheUtils.Delete(BD.CacheName, bds[i].IdBD));
