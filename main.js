@@ -47,7 +47,7 @@ window.onload = () => {
 };
 
 function DataBase() {
-    return dataBaseList[document.getElementById(cmbBDId).selectedIndex];
+    return dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
 }
 
 function NewBD() {
@@ -60,7 +60,7 @@ function NewBD() {
 
 function CloneBD() {
     //clona la BD actual y la añade a la lista
-    return DataBase().Clone().then(AddToList);
+    return DataBase().Clone().then((db) => db.Save()).then(AddToList);
 }
 
 function AddToList(bd) {
@@ -82,7 +82,10 @@ function DeleteBD() {
     if (pos > -1) {
         BD.DeleteFromCache(db)
             .then(() => ArrayUtils.RemoveAt(dataBaseList, db))
-            .then(() => SelectUtils.RemoveAt(cmb, pos));
+            .then(() => SelectUtils.RemoveAt(cmb, pos)).then(() => {
+                if (SelectUtils.Count(cmb) == 0)
+                    return NewBD();
+            });
     }
 }
 
