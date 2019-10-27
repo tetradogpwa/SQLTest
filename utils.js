@@ -50,7 +50,7 @@ class ArrayUtils {
         if (array.length > 0) {
             value = ArrayUtils.Peek(array);
         }
-        return;
+        return value;
     }
     static Pop(array) {
         var value = ArrayUtils.Peek(array);
@@ -63,13 +63,7 @@ class ArrayUtils {
 
 }
 
-function DownloadFile(name, data, typeData) {
-    var blob = new Blob([data], { type: typeData });
-    var link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    link.download = name;
-    link.click();
-}
+
 
 //https://stackoverflow.com/questions/14603205/how-to-convert-hex-string-into-a-bytes-array-and-a-bytes-array-in-the-hex-strin from crypto-js
 class ByteArrayUtils {
@@ -92,19 +86,60 @@ class ByteArrayUtils {
     }
 }
 
+class NodeListUtils {
 
-//https://stackoverflow.com/questions/3387427/remove-element-by-id
-Element.prototype.remove = function() {
-    this.parentElement.removeChild(this);
-}
-NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
-    for (var i = this.length - 1; i >= 0; i--) {
-        if (this[i] && this[i].parentElement) {
-            this[i].parentElement.removeChild(this[i]);
+    static Count(list) {
+        return list.length;
+    }
+    static GetAt(list, position) {
+        return list.item(position);
+    }
+    static RemoveAt(list, position) {
+        list.remove(NodeListUtils.GetAt(list, position));
+    }
+    static IndexOf(list, node) {
+        return ArrayUtils.IndexOf(Array.from(list), node);
+    }
+    static Push(list, node) {
+        list.appendChild(node);
+    }
+    static GetNodes(list) {
+        return list.entries();
+    }
+    static Remove(list, node) {
+        NodeListUtils.RemoveAt(list, NodeListUtils.IndexOf(list, node));
+    }
+
+    static Add(list, node) {
+        if (NodeListUtils.Count(list) > 0)
+            NodeListUtils.InsertAt(list, NodeListUtils.Count(list) - 1, node);
+        else NodeListUtils.Push(list, node);
+    }
+    static AddRange(list, nodeArray) {
+        for (var i = 0; i < nodeArray.length; i++)
+            NodeListUtils.Add(list, nodeArray[i]);
+    }
+    static Clear(list) {
+        while (list.lastChild) {
+            list.removeChild(list.lastChild);
         }
     }
+    static InsertAt(list, index, node) {
+        var array = Array.from(list);
+        ArrayUtils.InsertAt(array, index, node);
+        NodeListUtils.Clear(list);
+        NodeListUtils.AddRange(list, array);
+    }
+
+
+
 }
+
+
 class SelectUtils {
+    static SelectedIndex(select) {
+        return select.selectedIndex;
+    }
     static GetAt(select, position) {
         return select.options[position];
     }
@@ -112,7 +147,7 @@ class SelectUtils {
         return select.options.length;
     }
     static RemoveAt(select, position) {
-        ArrayUtils.RemoveAt(select.options, position);
+        NodeListUtils.RemoveAt(select.options, position);
     }
     static Add(select, value, innerText) {
         var option = SelectUtils.GetOption(value, innerText);
@@ -121,7 +156,7 @@ class SelectUtils {
     }
     static Push(select, value, innerText) {
         var option = SelectUtils.GetOption(value, innerText);
-        ArrayUtils.Push(select.options, option);
+        NodeListUtils.Push(select.options, option);
         return option;
     }
     static GetOption(value, innerText) {
@@ -213,4 +248,25 @@ class CacheUtils {
 
 
 
+}
+
+function DownloadFile(name, data, typeData) {
+    var blob = new Blob([data], { type: typeData });
+    var link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = name;
+    link.click();
+}
+//https://stackoverflow.com/questions/3199588/fastest-way-to-convert-javascript-nodelist-to-array
+NodeList.prototype.forEach = Array.prototype.forEach;
+//https://stackoverflow.com/questions/3387427/remove-element-by-id
+Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+}
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for (var i = this.length - 1; i >= 0; i--) {
+        if (this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
 }
