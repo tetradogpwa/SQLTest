@@ -66,29 +66,20 @@ function CloneBD() {
 function AddToList(bd) {
     //añade a la lista y al cm
     var cmb = document.getElementById(cmbBDId);
-    var option = document.createElement("option");
-
-    option.setAttribute("value", bd.IdBD);
-    option.innerText = bd.Name;
-
-    cmb.appendChild(option);
+    SelectUtils.Add(cmb, bd.IdBD, bd.Name);
     ArrayUtils.Add(dataBaseList, bd);
 }
 
 function DeleteBD() {
     //elimino la BD actual
     var cmb = document.getElementById(cmbBDId);
-    var encontrado = false;
-    var i, f;
     var db = DataBase();
-    for (i = 0, f = cmb.childNodes.length; i < f && !encontrado; i++)
-        encontrado = cmb.childNodes[i].value == db.IdBD;
-    i--; //antes de salir le suma uno por eso le resto :)
-    if (encontrado) {
+    var pos = SelectUtils.FindPositions(cmb, db.IdBD)[0];
+
+    if (pos > -1) {
         BD.DeleteFromCache(db);
         ArrayUtils.RemoveAt(dataBaseList, db);
-        cmb.removeChild(cmb.childNodes[i]); //de momento elimina
-
+        SelectUtils.RemoveAt(cmb, pos);
     }
 }
 

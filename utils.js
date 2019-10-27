@@ -104,6 +104,50 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
         }
     }
 }
+class SelectUtils {
+    static GetAt(select, position) {
+        return select.ChildNodes()[position];
+    }
+    static Count(select) {
+        return select.ChildNodes().length;
+    }
+    static RemoveAt(select, position) {
+        select.remove(position);
+    }
+    static Add(select, value, innerText) {
+        var option = SelectUtils.GetOption(value, innerText);
+        select.options.add(option);
+        return option;
+    }
+    static Push(select, value, innerText) {
+        var option = SelectUtils.GetOption(value, innerText);
+        if (select.options.length > 0)
+            select.options.insertBefore(option, select.options[0]);
+        else select.options.add(option);
+        return option;
+    }
+    static GetOption(value, innerText) {
+        var option = document.createElement("option");
+        option.setAttribute("value", value);
+        option.innerText = innerText;
+        return option;
+    }
+
+    static FindPositions(select, value) {
+        var posiciones = [];
+        for (var i = 0, f = SelectUtils.Count(select); i < f; i++)
+            if (SelectUtils.GetAt(select, i).value == value)
+                ArrayUtils.Add(posiciones, i);
+        return posiciones;
+    }
+    static Remove(select, value) {
+        var posiciones = SelectUtils.FindPositions(select, value);
+
+        for (var i = 0; i < posiciones.length; i++)
+            SelectUtils.RemoveAt(select, posiciones[i]);
+    }
+
+}
 class CacheUtils {
 
     static Set(nombreCache, key, value) {
