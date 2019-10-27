@@ -72,7 +72,7 @@ function AddToList(bd) {
     option.innerText = bd.Name;
 
     cmb.appendChild(option);
-    ArrayUtils.Add(dataBaseList, value);
+    ArrayUtils.Add(dataBaseList, bd);
 }
 
 function DeleteBD() {
