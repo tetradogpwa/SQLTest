@@ -21,17 +21,18 @@ window.onload = () => {
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
         BD.LoadAll().then((bds) => {
-            var promesas = [];
+            var promesa;
+
             if (bds.length == 0)
-                ArrayUtils.Add(promesas, NewBD());
+                promesa = NewBD();
             else {
-                ArrayUtils.Add(promesas, new Promise((okey, error) => {
+                promesa = new Promise((okey, error) => {
                     for (var i = 0; i < bds.length; i++)
                         AddToList(bds[i]);
                     okey();
-                }));
+                });
             }
-            Promise.all(promesas).then(() => {
+            promesa.then(() => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
