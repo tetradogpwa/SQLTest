@@ -77,7 +77,7 @@ class BD {
 
                 this.Import(data).then(() => {
 
-                    CacheUtils.GetString(BD.CacheName, idBB).then((name) => {
+                    CacheUtils.GetString(BD.CacheName, idBD).then((name) => {
                         this.Name = name;
                         okey(this);
                     });
@@ -86,7 +86,7 @@ class BD {
                 }).catch(error);
 
 
-            }).catch(() => error("imposible load id='" + idBD + "' not found."));
+            }).catch(() => error("imposible load id='" + this.IdBD + "' not found."));
 
 
         });
@@ -96,9 +96,9 @@ class BD {
             this.Export()
                 .then(data => {
                     //set data
-                    CacheUtils.SetByteArray(BD.CacheData, idBD, data).then(() => {
+                    CacheUtils.SetByteArray(BD.CacheData, this.IdBD, data).then(() => {
                         //set name
-                        CacheUtils.SetString(BD.CacheName, idBD, this.Name).then(() => {
+                        CacheUtils.SetString(BD.CacheName, this.IdBD, this.Name).then(() => {
 
                             okey(this);
                         })
