@@ -21,16 +21,22 @@ window.onload = () => {
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
         BD.LoadAll().then((bds) => {
-
+            var promesas = [];
             if (bds.length == 0)
-                NewBD();
+                ArrayUtils.Add(promesas, NewBD());
             else {
-                for (var i = 0; i < bds.length; i++)
-                    AddToList(bds[i]);
+                ArrayUtils.Add(promesas, new Promise((okey, error) => {
+                    for (var i = 0; i < bds.length; i++)
+                        AddToList(bds[i]);
+                    okey();
+                }));
             }
-            //quito el loader :)
-            document.getElementById(loaderId).remove();
-            document.getElementById(contentBoxId).classList.remove(postLoaderClass);
+            Promise.all(promesas).then(() => {
+                //quito el loader :)
+                document.getElementById(loaderId).remove();
+                document.getElementById(contentBoxId).classList.remove(postLoaderClass);
+            });
+
 
 
         });
@@ -46,14 +52,14 @@ function DataBase() {
 function NewBD() {
     //crea una BD nueva y la añade a la lista
     var bd = new BD();
-    bd.Init.then(() => {
+    return bd.Init.then(() => {
         AddToList(bd);
     });
 }
 
 function CloneBD() {
     //clona la BD actual y la añade a la lista
-    DataBase().Clone().then(AddToList);
+    return DataBase().Clone().then(AddToList);
 }
 
 function AddToList(bd) {
@@ -65,7 +71,7 @@ function AddToList(bd) {
     option.innerText = bd.Name;
 
     cmb.appendChild(option);
-    dataBaseList.push(bd);
+    ArrayUtils.Add(dataBaseList, value);
 }
 
 function DeleteBD() {
@@ -73,12 +79,13 @@ function DeleteBD() {
     var cmb = document.getElementById(cmbBDId);
     var encontrado = false;
     var i, f;
+    var db = DataBase();
     for (i = 0, f = cmb.childNodes.length; i < f && !encontrado; i++)
-        encontrado = cmb.childNodes[i].value == DataBase().IdBD;
+        encontrado = cmb.childNodes[i].value == db.IdBD;
     i--; //antes de salir le suma uno por eso le resto :)
     if (encontrado) {
-        BD.DeleteFromCache(DataBase());
-        dataBaseList.slice(cmb.selectedIndex);
+        BD.DeleteFromCache(db);
+        ArrayUtils.RemoveAt(dataBaseList, db);
         cmb.removeChild(cmb.childNodes[i]); //de momento elimina
 
     }
@@ -100,11 +107,7 @@ function DownloadBD() {
 function Download(bd) {
 
     bd.Export().then((data) => {
-        var blob = new Blob([data], { type: "application/octet-stream" });
-        var link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        link.download = bd.Name + ".sqlite";
-        link.click();
+        Download.File(bd.Name + ".sqlite", data, "application/octet-stream");
 
     });
 }

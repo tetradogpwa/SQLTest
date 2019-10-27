@@ -25,9 +25,53 @@ class ArrayUtils {
         return args;
     }
 
+    static IndexOf(array, value) {
+        return array.indexOf(value);
+    }
+
+    static Remove(array, value) {
+        ArrayUtils(array, ArrayUtils.IndexOf(array, value));
+    }
+    static RemoveAt(array, index) {
+        array.splice(index, 1);
+    }
+
+    static InsertAt(array, index, value) {
+        array.splice(index, 0, value);
+    }
+    static Add(array, value) {
+        ArrayUtils.InsertAt(array, array.length - 1, value);
+    }
+    static Push(array, value) {
+        ArrayUtils.InsertAt(array, 0, value);
+    }
+    static Peek(array) {
+        var value = null;
+        if (array.length > 0) {
+            value = ArrayUtils.Peek(array);
+        }
+        return;
+    }
+    static Pop(array) {
+        var value = ArrayUtils.Peek(array);
+
+        if (array.length > 0) {
+            ArrayUtils.RemoveAt(array, 0);
+        }
+        return value;
+    }
+
 }
 
-
+class Download {
+    static File(name, data, typeData) {
+        var blob = new Blob([data], { type: typeData });
+        var link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = name;
+        link.click();
+    }
+}
 //https://stackoverflow.com/questions/14603205/how-to-convert-hex-string-into-a-bytes-array-and-a-bytes-array-in-the-hex-strin from crypto-js
 class ByteArrayUtils {
 
@@ -78,11 +122,11 @@ class CacheUtils {
         return CacheUtils.SetString(nombreCache, key, strCss, "text/css");
     }
     static SetJson(nombreCache, key, strCss) {
-            return CacheUtils.SetString(nombreCache, key, strCss, "application/json");
-        }
-        //falta acabar
+        return CacheUtils.SetString(nombreCache, key, strCss, "application/json");
+    }
+
     static SetString(nombreCache, key, string, typeData = "text/plain") {
-            return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response("body{" + arrayBytes + "}", { headers: { "Content-Type": typeData } }));
+            return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response("body{" + string + "}", { headers: { "Content-Type": typeData } }));
         }
         //hacer más tipos :D
     static Get(nombreCache, key) {
@@ -112,6 +156,17 @@ class CacheUtils {
     }
     static Delete(nombreCache, key) {
         return cache.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
+    }
+
+    static GetKeys(nombreCache, toInclude = "") {
+        return cache.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
+            for (var i = keys.length - 1; i >= 0; i--) {
+                if (!keys[i].includes(toInclude)) {
+                    ArrayUtils.RemoveAt(keys, i);
+                }
+            }
+            return keys;
+        });
     }
 
 
