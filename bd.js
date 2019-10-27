@@ -48,11 +48,11 @@ class BD {
     }
 
 
-    static get CacheNameBD() {
+    static get CacheName() {
         return "BD.Name";
     }
 
-    static get CacheDataBD() {
+    static get CacheData() {
         return "BD.Data";
     }
 
@@ -72,12 +72,12 @@ class BD {
     //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-            CacheUtils.GetByteArray(CacheDataBD, idBD).then((data) => {
+            CacheUtils.GetByteArray(CacheData, idBD).then((data) => {
 
 
                 this.Import(data).then(() => {
 
-                    CacheUtils.GetString(CacheNameBD, idBB).then((name) => {
+                    CacheUtils.GetString(CacheName, idBB).then((name) => {
                         this.Name = name;
                         okey(this);
                     });
@@ -96,9 +96,9 @@ class BD {
             this.Export()
                 .then(data => {
                     //set data
-                    CacheUtils.SetByteArray(CacheDataBD, idBD, data).then(() => {
+                    CacheUtils.SetByteArray(CacheData, idBD, data).then(() => {
                         //set name
-                        CacheUtils.SetString(CacheNameBD, idBD, this.Name).then(() => {
+                        CacheUtils.SetString(CacheName, idBD, this.Name).then(() => {
 
                             okey(this);
                         })
@@ -162,7 +162,7 @@ class BD {
         //cargar/guardar
     static LoadAll() {
         return new Promise((okey, error) => {
-            CacheUtils.GetKeys(CacheDataBD, BD.Header).then((keysFiltradas) => {
+            CacheUtils.GetKeys(CacheData, BD.Header).then((keysFiltradas) => {
                 var bds = [];
                 var initBDS = [];
                 for (var i = 0; i < keysFiltradas.length; i++) {
@@ -194,8 +194,8 @@ class BD {
         bds = ArrayUtils.Root(bds);
         promesas = [];
         for (var i = 0; i < bds.length; i++) {
-            promesas.push(CacheUtils.Delete(BD.CacheDataBD, bds[i].IdBD));
-            promesas.push(CacheUtils.Delete(BD.CacheNameBD, bds[i].IdBD));
+            promesas.push(CacheUtils.Delete(BD.CacheData, bds[i].IdBD));
+            promesas.push(CacheUtils.Delete(BD.CacheName, bds[i].IdBD));
         }
         return Promise.all(promesas);
 
