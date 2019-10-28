@@ -25,7 +25,7 @@ class BD {
                 this.Init = initSqlJs().then(SQL => {
                     this._bd = new SQL.Database();
                     this.IdBD = BD.Header + new Date().getTime();
-                    okey(this);
+                    return this;
 
                 });
             }
