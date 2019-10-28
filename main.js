@@ -81,7 +81,7 @@ function DeleteBD() {
 
     if (pos > -1) {
         BD.DeleteFromCache(db)
-            .then(() => ArrayUtils.RemoveAt(dataBaseList, db))
+            .then(() => ArrayUtils.Remove(dataBaseList, db))
             .then(() => SelectUtils.RemoveAt(cmb, pos)).then(() => {
                 if (SelectUtils.Count(cmb) == 0)
                     return NewBD();
@@ -120,13 +120,13 @@ function DownloadAllBD() {
 }
 
 function ExecuteSQL() {
-    var SQLSentence = document.getElementById(txtSqlId).innerText;
+    var txtSQLSentence = document.getElementById(txtSqlId);
     var txtResult = document.getElementById(txtResultId);
     var selectedBD = DataBase();
-    selectedBD.Execute(SQLSentence)
+    selectedBD.Execute(txtSQLSentence.innerText)
         .then((result) => {
             txtResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(result) + "'";
-            localStorage.setItem(SQLSENTENCE, SQLSentence);
+            localStorage.setItem(SQLSENTENCE, txtSQLSentence.innerText);
         }).catch((error) => {
             txtResult.value = "BD='" + selectedBD.Name + "' '" + error + "'";
         });
