@@ -67,16 +67,16 @@ class BD {
         return new Promise((okey, error) => {
             CacheUtils.GetByteArray(BD.CacheData, idBD)
                 .then(this.Import)
-                .then(() => { return CacheUtils.GetString(BD.CacheName, idBD) })
+                .then(() => { return CacheUtils.GetString(BD.CacheName, idBD); })
                 .then((name) => {
                     this.Name = name;
                     okey(this);
                 })
 
-            .catch(error);
+            .catch(() => error("imposible load id='" + this.IdBD + "' not found."));
 
 
-        }).catch(() => error("imposible load id='" + this.IdBD + "' not found."));
+        });
 
 
     }
@@ -156,7 +156,7 @@ class BD {
                 var bds = [];
                 var initBDS = [];
                 var bd;
-                console.log(keysFiltradas);
+
                 for (var i = 0; i < keysFiltradas.length; i++) {
 
                     bd = new BD(keysFiltradas[i]);
