@@ -151,7 +151,7 @@ class BD {
     Clone() {
             return new Promise((okey, error) => {
                 var clon = new BD();
-           clon.Init.then(()=> this.Export().then(data => clon.Import(data))
+                clon.Init.then(() => this.Export().then(data => clon.Import(data))
                     .then(() => {
                         clon.Name = this.Name + "_Clon";
                         okey(clon);
@@ -171,9 +171,12 @@ class BD {
                     initBDS.push(bds[bds.length - 1].Init);
 
                 }
-                return Promise.all(initBDS).then(() => { return bds; });
+                return Promise.all(initBDS).then(() => { console.log(bds); return bds; });
 
-            }).then(okey).catch(error);
+            }).then((bds) => {
+                console.log("paso por aqui");
+                okey(bds);
+            }).catch(error);
         });
 
 
