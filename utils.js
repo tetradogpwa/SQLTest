@@ -219,16 +219,16 @@ class CacheUtils {
         return CacheUtils.GetString(nombreCache, key);
     }
     static GetString(nombreCache, key) {
-        return Get(nombreCache, key).then((result) => result.text());
+        return CacheUtils.Get(nombreCache, key).then((result) => result.text());
     }
 
     static GetByteArray(nombreCache, key) {
-        return Get(nombreCache, key).then((result) => result.blob());
+        return CacheUtils.Get(nombreCache, key).then((result) => result.blob());
 
     }
 
     static Remove(nombreCache, key) {
-        return Delete(nombreCache, key);
+        return CacheUtils.Delete(nombreCache, key);
     }
     static Delete(nombreCache, key) {
         return caches.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
