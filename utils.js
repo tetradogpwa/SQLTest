@@ -237,7 +237,7 @@ class CacheUtils {
     static GetKeys(nombreCache, toInclude = "") {
         return caches.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
             for (var i = keys.length - 1; i >= 0; i--) {
-                if (!String(keys[i]).includes(toInclude)) {
+                if (!String(keys[i].url).includes(toInclude)) {
                     ArrayUtils.RemoveAt(keys, i);
                 }
             }
