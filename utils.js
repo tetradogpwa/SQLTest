@@ -30,7 +30,7 @@ class ArrayUtils {
     }
 
     static Remove(array, value) {
-        ArrayUtils(array, ArrayUtils.IndexOf(array, value));
+        ArrayUtils.RemoveAt(array, ArrayUtils.IndexOf(array, value));
     }
     static RemoveAt(array, index) {
         array.splice(index, 1);
@@ -48,7 +48,7 @@ class ArrayUtils {
     static Peek(array) {
         var value = null;
         if (array.length > 0) {
-            value = ArrayUtils.Peek(array);
+            value =array[0];
         }
         return value;
     }
