@@ -234,7 +234,7 @@ class CacheUtils {
         return caches.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
     }
 
-    static GetKeys(nombreCache, toInclude = "") {
+    static GetKeysRequest(nombreCache, toInclude = "") {
         return caches.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
             for (var i = keys.length - 1; i >= 0; i--) {
                 if (!String(keys[i].url).includes(toInclude)) {
@@ -242,6 +242,17 @@ class CacheUtils {
                 }
             }
             return keys;
+        });
+    }
+    static GetKeys(nombreCache, toInclude = "") {
+        return CacheUtils.GetKeysRequest(nombreCache, toInclude).then((keys) => {
+            var keysEnLimpio = [];
+            var camposKey;
+            for (var i = 0; i < keys.length; i++) {
+                camposKey = String(keys[i].url).split('/');
+                ArrayUtils.Add(keysEnLimpio, camposKey[camposKey.length - 1]);
+            }
+            return keysEnLimpio;
         });
     }
 
