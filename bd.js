@@ -165,10 +165,11 @@ class BD {
             CacheUtils.GetKeys(BD.CacheData, BD.Header).then((keysFiltradas) => {
                 var bds = [];
                 var initBDS = [];
+                var bd;
                 for (var i = 0; i < keysFiltradas.length; i++) {
-
-                    ArrayUtils.Add(bds, new BD(keysFiltradas[i]));
-                    ArrayUtils.Add(initBDS, bds[bds.length - 1].Init);
+                    bd = new BD(keysFiltradas[i]);
+                    ArrayUtils.Add(bds, bd);
+                    ArrayUtils.Add(initBDS, bd.Init);
 
                 }
                 return Promise.all(initBDS).then(() => { return bds; });
