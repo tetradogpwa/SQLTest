@@ -48,7 +48,7 @@ class ArrayUtils {
     static Peek(array) {
         var value = null;
         if (array.length > 0) {
-            value =array[0];
+            value = array[0];
         }
         return value;
     }
@@ -95,7 +95,7 @@ class NodeListUtils {
         return list.item(position);
     }
     static RemoveAt(list, position) {
-        list.remove(NodeListUtils.GetAt(list, position));
+        list.removeChild(NodeListUtils.GetAt(list, position));
     }
     static IndexOf(list, node) {
         return ArrayUtils.IndexOf(Array.from(list), node);
@@ -202,7 +202,7 @@ class CacheUtils {
     }
 
     static SetString(nombreCache, key, string, typeData = "text/plain") {
-            return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response("body{" + string + "}", { headers: { "Content-Type": typeData } }));
+            return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response(string, { headers: { "Content-Type": typeData } }));
         }
         //hacer más tipos :D
     static Get(nombreCache, key) {
