@@ -18,22 +18,15 @@ class BD {
     constructor(idBD = "") {
 
             this.IdBD = idBD;
-            this.Init = initSqlJs().then(SQL => {
-                return new Promise((okey, error) => {
-                    this._bd = new SQL.Database();
-                    okey();
-                });
-
-            });
 
             if (this.IdBD != "") {
-                this.Init = this.Init.then(() => this.Load(this.IdBD));
+                this.Init = this.Load(this.IdBD);
             } else {
-                this.Init = this.Init.then(() => {
-                    return new Promise((okey, error) => {
-                        this.IdBD = BD.Header + new Date().getTime();
-                        okey();
-                    });
+                this.Init = initSqlJs().then(SQL => {
+                    this._bd = new SQL.Database();
+                    this.IdBD = BD.Header + new Date().getTime();
+                    okey(this);
+
                 });
             }
         }
@@ -72,25 +65,22 @@ class BD {
     //metodos cargar/guardar
     Load(idBD) {
         return new Promise((okey, error) => {
-            CacheUtils.GetByteArray(BD.CacheData, idBD).then((data) => {
+            CacheUtils.GetByteArray(BD.CacheData, idBD)
+                .then(this.Import)
+                .then(() => { return CacheUtils.GetString(BD.CacheName, idBD) })
+                .then((name) => {
+                    this.Name = name;
+                    okey(this);
+                })
+
+            .catch(error);
 
 
-                this.Import(data).then(() => {
-
-                    CacheUtils.GetString(BD.CacheName, idBD).then((name) => {
-                        this.Name = name;
-                        okey(this);
-                    });
+        }).catch(() => error("imposible load id='" + this.IdBD + "' not found."));
 
 
-                }).catch(error);
-
-
-            }).catch(() => error("imposible load id='" + this.IdBD + "' not found."));
-
-
-        });
     }
+
     Save() {
         return new Promise((okey, error) => {
             this.Export()
@@ -151,7 +141,7 @@ class BD {
     Clone() {
             return new Promise((okey, error) => {
                 var clon = new BD();
-                clon.Init.then(() => this.Export().then(data => clon.Import(data))
+                clon.Init.then(() => this.Export().then((data) => clon.Import(data))
                     .then(() => {
                         clon.Name = this.Name + "_Clon";
                         okey(clon);
@@ -166,7 +156,9 @@ class BD {
                 var bds = [];
                 var initBDS = [];
                 var bd;
+                console.log(keysFiltradas);
                 for (var i = 0; i < keysFiltradas.length; i++) {
+
                     bd = new BD(keysFiltradas[i]);
                     ArrayUtils.Add(bds, bd);
                     ArrayUtils.Add(initBDS, bd.Init);
