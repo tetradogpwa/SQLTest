@@ -21,7 +21,7 @@ window.onload = () => {
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
         document.getElementById("cmbBD").onchange = () => {
-            console.log(document.getElementById("cmbBD").childNodes[document.getElementById("cmbBD").selectedIndex].value);
+            console.log(document.getElementById("cmbBD").childNodes[document.getElementById("cmbBD").selectedIndex]);
 
         };
         BD.LoadAll().then((bds) => {
