@@ -151,11 +151,11 @@ class BD {
     Clone() {
             return new Promise((okey, error) => {
                 var clon = new BD();
-                this.Export().then(e => clon.Import(e))
+           clon.Init.then(()=> this.Export().then(data => clon.Import(data))
                     .then(() => {
                         clon.Name = this.Name + "_Clon";
                         okey(clon);
-                    }).catch(error);
+                    })).catch(error);
 
             });
         }
