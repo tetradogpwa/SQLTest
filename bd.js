@@ -167,16 +167,13 @@ class BD {
                 var initBDS = [];
                 for (var i = 0; i < keysFiltradas.length; i++) {
 
-                    bds.push(new BD(keysFiltradas));
-                    initBDS.push(bds[bds.length - 1].Init);
+                    ArrayUtils.Add(bds, new BD(keysFiltradas[i]));
+                    ArrayUtils.Add(initBDS, bds[bds.length - 1].Init);
 
                 }
-                return Promise.all(initBDS).then(() => { console.log(bds); return bds; });
+                return Promise.all(initBDS).then(() => { return bds; });
 
-            }).then((bds) => {
-                console.log("paso por aqui");
-                okey(bds);
-            }).catch(error);
+            }).then(okey).catch(error);
         });
 
 

@@ -1,4 +1,4 @@
-const CACHE_VERSION_ANTERIOR = 23; //subo aqui para no tener problemas :D
+const CACHE_VERSION_ANTERIOR = 24; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
 const APP = "SQLTest";
 const CACHE_INMUTABLE = "CACHE_INMUTABLE_" + APP;
