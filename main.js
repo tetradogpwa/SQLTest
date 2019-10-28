@@ -20,9 +20,13 @@ window.onload = () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
+        document.getElementById("cmbBD").onchange = () => {
+            console.log(document.getElementById("cmbBD").childNodes[document.getElementById("cmbBD").selectedIndex].value);
+
+        };
         BD.LoadAll().then((bds) => {
             var promesa;
-
+            console.log(bds);
             if (bds.length == 0)
                 promesa = NewBD();
             else {
