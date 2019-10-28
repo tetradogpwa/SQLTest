@@ -44,7 +44,7 @@ window.onload = () => {
 
 
 
-        });
+        }).catch(alert);
     } else alert("Imposible work in this Browser!!");
 
 
