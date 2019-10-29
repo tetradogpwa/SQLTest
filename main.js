@@ -130,8 +130,8 @@ function ExecuteSQL() {
     var txtSQLSentence = document.getElementById(txtSqlId);
     var txtResult = document.getElementById(txtResultId);
     var selectedBD = DataBase();
-    localStorage.setItem(SQLSENTENCE, txtSQLSentence.innerText);
-    selectedBD.Execute(txtSQLSentence.innerText)
+    localStorage.setItem(SQLSENTENCE, txtSQLSentence.value);
+    selectedBD.Execute(txtSQLSentence.value)
         .then((result) => {
             console.log(result);
             txtResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(result) + "'";
