@@ -26,10 +26,10 @@ window.onload = () => {
             console.log(document.getElementById("cmbBD").childNodes[document.getElementById("cmbBD").selectedIndex]);
 
         };
-        document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE];
+        document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "";
         BD.LoadAll().then((bds) => {
             var promesa;
-            console.log(bds);
+
             if (bds.length == 0)
                 promesa = NewBD();
             else {
@@ -132,6 +132,7 @@ function ExecuteSQL() {
     var selectedBD = DataBase();
     selectedBD.Execute(txtSQLSentence.innerText)
         .then((result) => {
+            console.log(result);
             txtResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(result) + "'";
             localStorage.setItem(SQLSENTENCE, txtSQLSentence.innerText);
         }).catch((error) => {
