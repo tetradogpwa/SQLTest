@@ -6,6 +6,7 @@ function Import(file) {
     document.write('<script language=\"JavaScript\" type=\"text/JavaScript\" src=' + file + '></script>');
 }
 
+const SQLSENTENCE = "sql sentence";
 //asi si le cambio el nombre no tendré problemas :)
 var cmbBDId = "cmbBD";
 var txtSqlId = "txtSql";
@@ -13,6 +14,7 @@ var txtResultId = "txtResult";
 var loaderId = "loader";
 var contentBoxId = "contentBox";
 var postLoaderClass = "postLoader";
+
 //inicializo la lista
 var dataBaseList = [];
 
@@ -24,6 +26,7 @@ window.onload = () => {
             console.log(document.getElementById("cmbBD").childNodes[document.getElementById("cmbBD").selectedIndex]);
 
         };
+        document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE];
         BD.LoadAll().then((bds) => {
             var promesa;
             console.log(bds);
