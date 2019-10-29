@@ -184,11 +184,13 @@ class SelectUtils {
 class CacheUtils {
 
     static Set(nombreCache, key, value) {
-        return caches.open(nombreCache).then((cache) => {
+        return CacheUtils.Remove(nombreCache, key).finally(() => {
+            return caches.open(nombreCache).then((cache) => {
 
-            cache.put((key instanceof Request) ? key : new Request(key), (value instanceof Response) ? value : new Response(value));
+                return cache.put((key instanceof Request) ? key : new Request(key), (value instanceof Response) ? value : new Response(value));
 
 
+            });
         });
     }
     static SetByteArray(nombreCache, key, arrayBytes, typeData = "application/octet-stream") {
@@ -206,12 +208,12 @@ class CacheUtils {
         }
         //hacer más tipos :D
     static Get(nombreCache, key) {
-        return CacheUtils.Remove(nombreCache, key).finally(() => {
-            return caches.open(nombreCache).then(cache => {
 
-                return cache.match((key instanceof Request) ? key : new Request(key));
-            });
+        return caches.open(nombreCache).then(cache => {
+
+            return cache.match((key instanceof Request) ? key : new Request(key));
         });
+
 
     }
     static GetJson(nombreCache, key) {
