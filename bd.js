@@ -202,7 +202,7 @@ class BD {
         if (result.length != 0) {
             for (var j = 0; j < result.length; j++) {
                 text += j + ":" + BD._filaToString(result[j].columns);
-                for (i in result[j].values)
+                for (var i = 0; i < result[j].values.length; i++)
                     text += BD._filaToString(result[j].values[i]);
             }
         } else text = "No result from SQLite!";
