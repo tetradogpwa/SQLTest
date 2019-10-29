@@ -211,7 +211,7 @@ class BD {
     }
 
     static _filaToString(array) {
-        var fila = "";
+        var fila = "\n";
         for (var i = 0; i < array.length; i++) {
             fila += "\t" + array[i];
         }
