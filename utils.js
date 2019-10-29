@@ -206,9 +206,11 @@ class CacheUtils {
         }
         //hacer más tipos :D
     static Get(nombreCache, key) {
-        return caches.open(nombreCache).then(cache => {
+        return CacheUtils.Remove(nombreCache, key).finally(() => {
+            return caches.open(nombreCache).then(cache => {
 
-            return cache.match((key instanceof Request) ? key : new Request(key));
+                return cache.match((key instanceof Request) ? key : new Request(key));
+            });
         });
 
     }
