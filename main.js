@@ -143,5 +143,5 @@ function ExecuteSQL() {
 }
 
 function Clear() {
-    document.getElementById(txtSqlId).innerText = "";
+    document.getElementById(txtSqlId).value = "";
 }
