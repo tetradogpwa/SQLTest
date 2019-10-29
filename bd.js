@@ -198,7 +198,7 @@ class BD {
 
     //string result part
     static ResultToString(result) {
-        var text = "";
+        var text = "\n";
         if (result.length != 0) {
             for (var j = 0; j < result.length; j++) {
                 text += j + ":" + BD._filaToString(result[j].columns);
