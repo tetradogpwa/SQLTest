@@ -223,7 +223,7 @@ class CacheUtils {
     }
 
     static GetByteArray(nombreCache, key) {
-        return CacheUtils.Get(nombreCache, key).then((result) => result.blob().arrayBuffer());
+        return CacheUtils.Get(nombreCache, key).then((result) => result.blob()).then((b) => b.arrayBuffer());
 
     }
 
