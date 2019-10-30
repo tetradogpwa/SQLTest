@@ -57,6 +57,19 @@ function DataBase() {
     return dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
 }
 
+function Test() {
+    DataBase().Save().then(() => {
+        DataBase().Export().then((data) => {
+            CacheUtils.GetByteArray(BD.CacheData, DataBase().IdBD).then((data2) => {
+                for (var i = 0; i < data.length; i++)
+                    if (data[i] != data2[i])
+                        alert("no son iguales!!!");
+                alert("Fin");
+            });
+        });
+    });
+}
+
 function NewBD() {
     //crea una BD nueva y la añade a la lista
     var bd = new BD();
