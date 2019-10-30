@@ -66,8 +66,10 @@ class BD {
     Load(idBD) {
         return new Promise((okey, error) => {
             CacheUtils.GetByteArray(BD.CacheData, idBD)
-                .then((data) => { console.log(data);
-                    this.Import(data); })
+                .then((data) => {
+                    console.log("load:", data);
+                    this.Import(data);
+                })
                 .then(() => { return CacheUtils.GetString(BD.CacheName, idBD); })
                 .then((name) => {
                     this.Name = name;
@@ -86,6 +88,7 @@ class BD {
         return new Promise((okey, error) => {
             this.Export()
                 .then(data => {
+                    console.log("Save:", data);
                     //set data
                     CacheUtils.SetByteArray(BD.CacheData, this.IdBD, data).then(() => {
                         //set name
