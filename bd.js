@@ -108,7 +108,7 @@ class BD {
     Import(dataBD) {
         return new Promise((okey, error) => initSqlJs().then(SQL => {
             console.log("load:", dataBD);
-            this._bd = new SQL.Database(new Uint8Array([dataBD]));
+            this._bd = new SQL.Database(Uint8Array.from(dataBD));
             okey(this);
         }).catch(error));
     }
