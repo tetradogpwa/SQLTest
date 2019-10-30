@@ -194,71 +194,71 @@ class CacheUtils {
         });
     }
     static SetByteArray(nombreCache, key, arrayBytes, typeData = "application/octet-stream") {
-        return CacheUtils.Set(nombreCache, key, (arrayBytes instanceof Response || arrayBytes instanceof Blob) ? arrayBytes : new Blob(new UInt8Array(arrayBytes), { type: typeData }));
-    }
-    static SetCss(nombreCache, key, strCss) {
-        return CacheUtils.SetString(nombreCache, key, strCss, "text/css");
-    }
-    static SetJson(nombreCache, key, strCss) {
-        return CacheUtils.SetString(nombreCache, key, strCss, "application/json");
-    }
+        return CacheUtils.Set(nombreCache, key, (arrayBytes instanceof Response || arrayBytes instanceof Blob) ? arrayBytes : new Blob(new UInt8Array(arrayBytes)), { type: typeData }));
+}
+static SetCss(nombreCache, key, strCss) {
+    return CacheUtils.SetString(nombreCache, key, strCss, "text/css");
+}
+static SetJson(nombreCache, key, strCss) {
+    return CacheUtils.SetString(nombreCache, key, strCss, "application/json");
+}
 
-    static SetString(nombreCache, key, string, typeData = "text/plain") {
-            return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response(string, { headers: { "Content-Type": typeData } }));
+static SetString(nombreCache, key, string, typeData = "text/plain") {
+        return CacheUtils.Set(nombreCache, key, string instanceof Response ? string : new Response(string, { headers: { "Content-Type": typeData } }));
+    }
+    //hacer más tipos :D
+static Get(nombreCache, key) {
+
+    return caches.open(nombreCache).then(cache => {
+
+        return cache.match((key instanceof Request) ? key : new Request(key));
+    });
+
+
+}
+static GetJson(nombreCache, key) {
+    return CacheUtils.Get(nombreCache, key).then((j) => j.json());
+}
+static GetCss(nombreCache, key) {
+    return CacheUtils.GetString(nombreCache, key);
+}
+static GetString(nombreCache, key) {
+    return CacheUtils.Get(nombreCache, key).then((result) => result.text());
+}
+
+static GetByteArray(nombreCache, key) {
+    return CacheUtils.Get(nombreCache, key).then((result) => result.blob()).then((b) => { return new UInt8Array(b.arrayBuffer()); });
+
+}
+
+static Remove(nombreCache, key) {
+    return CacheUtils.Delete(nombreCache, key);
+}
+static Delete(nombreCache, key) {
+    return caches.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
+}
+
+static GetKeysRequest(nombreCache, toInclude = "") {
+    return caches.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
+        for (var i = keys.length - 1; i >= 0; i--) {
+            if (!String(keys[i].url).includes(toInclude)) {
+                ArrayUtils.RemoveAt(keys, i);
+            }
         }
-        //hacer más tipos :D
-    static Get(nombreCache, key) {
-
-        return caches.open(nombreCache).then(cache => {
-
-            return cache.match((key instanceof Request) ? key : new Request(key));
-        });
-
-
-    }
-    static GetJson(nombreCache, key) {
-        return CacheUtils.Get(nombreCache, key).then((j) => j.json());
-    }
-    static GetCss(nombreCache, key) {
-        return CacheUtils.GetString(nombreCache, key);
-    }
-    static GetString(nombreCache, key) {
-        return CacheUtils.Get(nombreCache, key).then((result) => result.text());
-    }
-
-    static GetByteArray(nombreCache, key) {
-        return CacheUtils.Get(nombreCache, key).then((result) => result.blob()).then((b) => { return new UInt8Array(b.arrayBuffer()); });
-
-    }
-
-    static Remove(nombreCache, key) {
-        return CacheUtils.Delete(nombreCache, key);
-    }
-    static Delete(nombreCache, key) {
-        return caches.open(nombreCache).then((cache) => cache.delete((key instanceof Request) ? key : new Request(key)));
-    }
-
-    static GetKeysRequest(nombreCache, toInclude = "") {
-        return caches.open(nombreCache).then((cache) => cache.keys()).then((keys) => {
-            for (var i = keys.length - 1; i >= 0; i--) {
-                if (!String(keys[i].url).includes(toInclude)) {
-                    ArrayUtils.RemoveAt(keys, i);
-                }
-            }
-            return keys;
-        });
-    }
-    static GetKeys(nombreCache, toInclude = "") {
-        return CacheUtils.GetKeysRequest(nombreCache, toInclude).then((keys) => {
-            var keysEnLimpio = [];
-            var camposKey;
-            for (var i = 0; i < keys.length; i++) {
-                camposKey = String(keys[i].url).split('/');
-                ArrayUtils.Add(keysEnLimpio, camposKey[camposKey.length - 1]);
-            }
-            return keysEnLimpio;
-        });
-    }
+        return keys;
+    });
+}
+static GetKeys(nombreCache, toInclude = "") {
+    return CacheUtils.GetKeysRequest(nombreCache, toInclude).then((keys) => {
+        var keysEnLimpio = [];
+        var camposKey;
+        for (var i = 0; i < keys.length; i++) {
+            camposKey = String(keys[i].url).split('/');
+            ArrayUtils.Add(keysEnLimpio, camposKey[camposKey.length - 1]);
+        }
+        return keysEnLimpio;
+    });
+}
 
 
 
