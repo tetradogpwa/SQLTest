@@ -67,8 +67,8 @@ class BD {
         return new Promise((okey, error) => {
             CacheUtils.GetByteArray(BD.CacheData, idBD)
                 .then((data) => {
-                    console.log("load:", data);
-                    this.Import(new UInt8Array(data));
+
+                    this.Import(data);
                 })
                 .then(() => { return CacheUtils.GetString(BD.CacheName, idBD); })
                 .then((name) => {
@@ -107,7 +107,8 @@ class BD {
 
     Import(dataBD) {
         return new Promise((okey, error) => initSqlJs().then(SQL => {
-            this._bd = new SQL.Database(dataBD);
+            console.log("load:", dataBD);
+            this._bd = new SQL.Database(new Uint8Array([dataBD]));
             okey(this);
         }).catch(error));
     }
