@@ -57,29 +57,6 @@ function DataBase() {
     return dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
 }
 
-function Test() {
-    DataBase().Save().then(() => {
-        DataBase().Export().then((data) => {
-            CacheUtils.GetByteArray(BD.CacheData, DataBase().IdBD).then((data2) => {
-
-                var iguales = true;
-                var i;
-
-                data2 = new Uint8Array(data2);
-                console.log("data1:", data);
-                console.log("data2:", data2);
-
-                for (i = 0; i < data.length && iguales; i++)
-                    iguales = (data[i] == data2[i]);
-                i--;
-
-                if (!iguales)
-                    alert("no son iguales!!! pos=" + i);
-                alert("Fin");
-            });
-        });
-    });
-}
 
 function NewBD() {
     //crea una BD nueva y la añade a la lista
