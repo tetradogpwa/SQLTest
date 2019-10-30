@@ -61,9 +61,14 @@ function Test() {
     DataBase().Save().then(() => {
         DataBase().Export().then((data) => {
             CacheUtils.GetByteArray(BD.CacheData, DataBase().IdBD).then((data2) => {
+
                 var iguales = true;
                 var i;
+
                 data2 = new Uint8Array(data2);
+                console.log("data1:", data);
+                console.log("data2:", data2);
+
                 for (i = 0; i < data.length && iguales; i++)
                     iguales = (data[i] != data2[i]);
                 i--;
