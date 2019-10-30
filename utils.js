@@ -194,7 +194,7 @@ class CacheUtils {
         });
     }
     static SetByteArray(nombreCache, key, arrayBytes, typeData = "application/octet-stream") {
-        return CacheUtils.Set(nombreCache, key, (arrayBytes instanceof Response || arrayBytes instanceof Blob) ? arrayBytes : new Blob(new UInt8Array(arrayBytes), { type: typeData }));
+        return CacheUtils.Set(nombreCache, key, (arrayBytes instanceof Response || arrayBytes instanceof Blob) ? arrayBytes : new Blob(arrayBytes, { type: typeData }));
     }
     static SetCss(nombreCache, key, strCss) {
         return CacheUtils.SetString(nombreCache, key, strCss, "text/css");
@@ -227,7 +227,7 @@ class CacheUtils {
     }
 
     static GetByteArray(nombreCache, key) {
-        return CacheUtils.Get(nombreCache, key).then((result) => result.blob()).then((b) => { return new UInt8Array(b.arrayBuffer()); });
+        return CacheUtils.Get(nombreCache, key).then((result) => result.blob()).then((b) => { return b.arrayBuffer(); });
 
     }
 
