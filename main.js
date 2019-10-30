@@ -61,6 +61,7 @@ function Test() {
     DataBase().Save().then(() => {
         DataBase().Export().then((data) => {
             CacheUtils.GetByteArray(BD.CacheData, DataBase().IdBD).then((data2) => {
+                data2 = new Uint8Array(data2);
                 for (var i = 0; i < data.length; i++)
                     if (data[i] != data2[i])
                         alert("no son iguales!!!");
