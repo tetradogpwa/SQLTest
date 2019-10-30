@@ -70,7 +70,7 @@ function Test() {
                 console.log("data2:", data2);
 
                 for (i = 0; i < data.length && iguales; i++)
-                    iguales = (data[i] != data2[i]);
+                    iguales = (data[i] == data2[i]);
                 i--;
 
                 if (!iguales)
