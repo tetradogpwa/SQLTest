@@ -193,8 +193,8 @@ class CacheUtils {
             });
         });
     }
-    static SetByteArray(nombreCache, key, arrayBytes, typeData = "application/octet-stream") {
-        return CacheUtils.SetString(nombreCache, key, (arrayBytes instanceof Response) ? arrayBytes : ByteArrayUtils.ToHex(arrayBytes), typeData);
+    static SetByteArray(nombreCache, key, arrayBytes) {
+        return CacheUtils.SetString(nombreCache, key, (arrayBytes instanceof Response) ? arrayBytes : ByteArrayUtils.ToHex(arrayBytes), "text/plain");
     }
     static SetCss(nombreCache, key, strCss) {
         return CacheUtils.SetString(nombreCache, key, strCss, "text/css");
