@@ -68,7 +68,7 @@ class BD {
             CacheUtils.GetByteArray(BD.CacheData, idBD)
                 .then((data) => {
                     console.log("load:", data);
-                    this.Import(new Uint8Array(data));
+                    this.Import(new UInt8Array(data));
                 })
                 .then(() => { return CacheUtils.GetString(BD.CacheName, idBD); })
                 .then((name) => {
