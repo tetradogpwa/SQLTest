@@ -265,6 +265,200 @@ class CacheUtils {
 
 }
 
+class IndexedDBUtils {
+
+
+    static IsCompatible() {
+        var compatible;
+        if (windows.indexedDB)
+            compatible = true;
+        else compatible = false;
+
+        return compatible;
+    }
+
+    static Open(ObjToSaveObj, SaveObjToObj, GetAuxObj, OldToNewObj, nameBD = "BD") {
+        return new Promise((okey, error) => {
+            var aux = GetAuxObj();
+            var nameCollection = aux.getClassName();
+            var keyCollection = nameBD + nameCollection;
+            var request;
+            IndexedDBUtils._Init();
+            //si existiese la cierro
+            if (IndexedDBUtils._ObjInit.has(keyCollection)) {
+                IndexedDBUtils._ObjInit.remove(keyCollection);
+                if (IndexedDBUtils._bds.has(keyCollection)) {
+                    IndexedDBUtils._bds.get(keyCollection).close();
+                    IndexedDBUtils._bds.remove(keyCollection);
+                }
+            }
+
+            IndexedBDUtils._GetVersion(aux, nameBD).then((version) => {
+
+                IndexedDBUtils._ObjInit.add(keyCollection, {
+                    ObjToSaveObj: ObjToSaveObj,
+                    SaveObjToObj: SaveObjToObj,
+                    GetAuxObj: GetAuxObj,
+                    OldToNewObj,
+                    OldToNewObj,
+                    NameBD: nameBD,
+                    Collection: nameCollection,
+                    Version: version
+
+                });
+                request = window.indexedBD.open(name, version);
+                request.onupdateneeded = (bd) => {
+                    try {
+                        IndexedDBUtils._bds.add(keyCollection, bd);
+                        //realizo la actualizacion tengo en cuenta el nombre de la propiedad porque alli vienen las opciones
+                        okey([nameBD, nameCollection]);
+                    } catch (ex) {
+                        error(ex);
+                    }
+                };
+            });
+
+
+            if (IndexedDBUtils._bdsInit.has(keyCollection))
+                IndexedDBUtils._bdsInit.remove(keyCollection);
+            //mirar la forma de hacerlo :)    
+            //  IndexedDBUtils._bdsInit.add(keyCollection, openPromise);
+
+
+        });
+
+
+    }
+    static _Init() {
+        if (!IndexedDBUtils._ObjInit) {
+            IndexedDBUtils._ObjInit = new Map();
+
+            IndexedDBUtils._bdsInit = new Map();
+
+            IndexedDBUtils._bds = new Map();
+            //Open TableName NameBD
+        }
+    }
+    static _GetVersion(objAux, nameBD = "BD") {
+        return new Promise((okey, error) => {
+            var nameCollection = objAux.getClassName();
+            var keyCollection = nameBD + nameCollection;
+        });
+    }
+    static GetByIdOrKeyPath(idOrKeyPath, nameBD = "BD") {
+        return IndexedDBUtils.Get(idOrKeyPath, "TableName", "NameBD").then((nameSaved) => IndexedDBUtils.Get(idOrKeyPath, nameSaved.Name, nameBD));
+    }
+    static Get(idOrKeyPath, GetAuxObj, nameBD = "BD") {
+
+    }
+    static GetAll(GetAuxObj, nameBD = "BD") {
+
+    }
+    static Add(obj, nameBD = "BD") {
+        return IndexedDBUtils._ComunAddRemove(obj, nameBD, IndexedDBUtils.Add, (objToSave, tableName) => {
+
+        });
+
+
+
+    }
+    static Remove(obj, nameBD = "BD") {
+        return IndexedDBUtils._ComunAddRemove(obj, nameBD, IndexedDBUtils.Remove, (objToSave, tableName) => {
+
+        });
+
+    }
+    static _ComunAddRemove(obj, nameBD, metodoTableName, metodoAddOrRemove) {
+        return new Promise((okey, error) => {
+            var nameCollection = obj.getClassName();
+            var keyCollection = nameBD + nameCollection;
+            var open;
+
+            if (!IndexedDBUtils._ObjInit && !IndexedDBUtils._ObjInit.has(keyCollection)) {
+                if (!IndexedDBUtils._bds && !IndexedDBUtils._bds.has(keyCollection))
+                    error("First at all you need to Open BD");
+                else {
+                    bd = IndexedDBUtils._bds.get(keyCollection);
+                    open = IndexedDBUtils.Open(bd.ObjToSaveObj, bd.SaveObjToObj, bd.GetAuxObj, bd.OldToNewObj, bd.NameBD);
+                }
+            } else {
+                bd = IndexedDBUtils._bds.get(keyCollection);
+                open = IndexedDBUtils._bdsInit.get(keyCollection);
+            }
+            open.then(() => {
+
+                objToSave = bd.ObjToSaveObj(obj);
+                if (collectionName != "TableName")
+                    promesa = metodoTableName(new TableName(
+                        objToSave.Id,
+                        collectionName
+
+                    ), "NameBD");
+                else {
+                    promesa = new Promise((okey, error) => okey());
+                }
+                promesa.then(() => {
+                    //añado o elimino
+                    metodoAddOrRemove(objToSave, nameBD);
+                    okey([obj, nameBD]);
+                }).catch(error);
+            });
+            //añado la promsea a la lista de promesas
+            if (!bd._promises)
+                bd._promises = [];
+            //mirar forma de añadir objeto
+            //ArrayUtils.Add(bd._promises,this);  
+
+
+
+        });
+
+    }
+    static AddRange(arrayObj, nameBD = "BD") {
+        return IndexedDBUtils._ComunRemoveAddRange(IndexedDBUtils.Add, arrayObj, nameBD);
+    }
+    static RemoveRange(arrayObj, nameBD = "BD") {
+        return IndexedDBUtils._ComunRemoveAddRange(IndexedDBUtils.Remove, arrayObj, nameBD);
+    }
+    static _ComunRemoveAddRange(metodoAddORemove, arrayObj, nameBD) {
+        var promises = [];
+        for (var i = 0; i < arrayOBj.length; i++)
+            ArrayUtils(promises, metodoAddORemove(arrayObj[i], nameBD));
+        return Promise.all(promises);
+    }
+
+    static Clear(GetAuxObj, nameBD = "BD") {
+
+    }
+    static ClearAll(nameBD = "BD") {
+
+    }
+
+    static Close(GetAuxObj, nameBD = "BD") {
+
+    }
+    static CloseAll() {
+
+    }
+
+
+}
+class TableName {
+    constructor(id, name) {
+        this._id = id;
+        this._name = name;
+    }
+    get Name() {
+        return this._name;
+    }
+    get Id() {
+        return this._id;
+    }
+}
+
+
+
+
 function DownloadFile(name, data, typeData) {
     var blob = new Blob([data], { type: typeData });
     var link = document.createElement("a");
@@ -272,6 +466,13 @@ function DownloadFile(name, data, typeData) {
     link.download = name;
     link.click();
 }
+//https://stackoverflow.com/questions/332422/get-the-name-of-an-objects-type
+Object.prototype.getClassName = function() {
+    var funcNameRegex = /function (.{1,})\(/;
+    var results = (funcNameRegex).exec((this).constructor.toString());
+    return (results && results.length > 1) ? results[1] : "";
+};
+
 //https://stackoverflow.com/questions/3199588/fastest-way-to-convert-javascript-nodelist-to-array
 NodeList.prototype.forEach = Array.prototype.forEach;
 //https://stackoverflow.com/questions/3387427/remove-element-by-id
