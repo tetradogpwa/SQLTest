@@ -268,11 +268,13 @@ class CacheUtils {
 class IndexedDBUtils {
 
 
-    static IsCompatible() {
+    static get IsCompatible() {
         var compatible;
-        if (windows.indexedDB)
+        var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+        if (indexedDB) {
             compatible = true;
-        else compatible = false;
+            window.indexedDB = indexedDB;
+        } else compatible = false;
 
         return compatible;
     }
@@ -308,6 +310,8 @@ class IndexedDBUtils {
                 });
                 request = window.indexedBD.open(name, version);
                 request.onupdateneeded = (bd) => {
+                    if (!bd._key)
+                        bd._key = keyCollection;
                     try {
                         IndexedDBUtils._bds.add(keyCollection, bd);
                         //realizo la actualizacion tengo en cuenta el nombre de la propiedad porque alli vienen las opciones
@@ -345,15 +349,16 @@ class IndexedDBUtils {
             var keyCollection = nameBD + nameCollection;
         });
     }
-    static GetByIdOrKeyPath(idOrKeyPath, nameBD = "BD") {
-        return IndexedDBUtils.Get(idOrKeyPath, "TableName", "NameBD").then((nameSaved) => IndexedDBUtils.Get(idOrKeyPath, nameSaved.Name, nameBD));
-    }
     static Get(idOrKeyPath, GetAuxObj, nameBD = "BD") {
-
+        //devuelvo el objeto ya convertido :)
     }
     static GetAll(GetAuxObj, nameBD = "BD") {
 
     }
+    static GetByIdOrKeyPath(idOrKeyPath, nameBD = "BD") {
+        return IndexedDBUtils.Get(idOrKeyPath, "TableName", "NameBD").then((nameSaved) => IndexedDBUtils.Get(idOrKeyPath, nameSaved.Name, nameBD));
+    }
+
     static Add(obj, nameBD = "BD") {
         return IndexedDBUtils._ComunAddRemove(obj, nameBD, IndexedDBUtils.Add, (objToSave, tableName) => {
 
@@ -406,6 +411,7 @@ class IndexedDBUtils {
             //añado la promsea a la lista de promesas
             if (!bd._promises)
                 bd._promises = [];
+
             //mirar forma de añadir objeto
             //ArrayUtils.Add(bd._promises,this);  
 
@@ -415,12 +421,12 @@ class IndexedDBUtils {
 
     }
     static AddRange(arrayObj, nameBD = "BD") {
-        return IndexedDBUtils._ComunRemoveAddRange(IndexedDBUtils.Add, arrayObj, nameBD);
+        return IndexedDBUtils._ComunRemoveOrAddRange(IndexedDBUtils.Add, arrayObj, nameBD);
     }
     static RemoveRange(arrayObj, nameBD = "BD") {
-        return IndexedDBUtils._ComunRemoveAddRange(IndexedDBUtils.Remove, arrayObj, nameBD);
+        return IndexedDBUtils._ComunRemoveOrAddRange(IndexedDBUtils.Remove, arrayObj, nameBD);
     }
-    static _ComunRemoveAddRange(metodoAddORemove, arrayObj, nameBD) {
+    static _ComunRemoveOrAddRange(metodoAddORemove, arrayObj, nameBD) {
         var promises = [];
         for (var i = 0; i < arrayOBj.length; i++)
             ArrayUtils(promises, metodoAddORemove(arrayObj[i], nameBD));
@@ -439,6 +445,18 @@ class IndexedDBUtils {
     }
     static CloseAll() {
 
+    }
+    static _CloseBD(bd) {
+        return Promise.all(bd._promises).then(() => {
+
+            IndexedDBUtils._ObjInit.remove(bd._key);
+            IndexedDBUtils._bds.remove(bd._key);
+            IndexedDBUtils._bdsInit.remove(bd._key);
+            bd._promises = [];
+            //cierro la BD
+            bd.close();
+
+        });
     }
 
 
