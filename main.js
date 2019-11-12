@@ -54,6 +54,9 @@ window.onload = () => {
 
 
 };
+window.onunload = () => {
+    SaveAll();
+}
 
 function UpdateSelectedBD() {
     selectedBD = dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
