@@ -14,16 +14,21 @@ var txtResultId = "txtResult";
 var loaderId = "loader";
 var contentBoxId = "contentBox";
 var postLoaderClass = "postLoader";
+var hSelectedBDId = "hSelectedBD";
 
 //inicializo la lista
 var dataBaseList = [];
 
+var selectedBD;
+
 window.onload = () => {
     if ('serviceWorker' in navigator) {
+        selectedBD = null;
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
-        document.getElementById("cmbBD").onchange = () => {
-            console.log(document.getElementById("cmbBD").childNodes[document.getElementById("cmbBD").selectedIndex]);
+        document.getElementById(cmbBDId).onchange = () => {
+            selectedBD = dataBaseList[document.getElementById(cmbBDId).selectedIndex];
+            document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
 
         };
         document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "";
@@ -71,7 +76,7 @@ function ChangeText() {
 }
 
 function DataBase() {
-    return dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
+    return selectedBD;
 }
 
 

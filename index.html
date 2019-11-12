@@ -46,8 +46,9 @@
                     <a href="#click" class="menu">
                         <h2 class="menu-title menu-title_3rd">All BD</h2>
                         <ul class="menu-dropdown">
-                            <li>Download</li>
                             <li>Save</li>
+                            <li>Download</li>
+
                         </ul>
                     </a>
                 </li>
@@ -61,11 +62,16 @@
 
         <section>
             <article>
+                <h1 id="hSelectedBD"></h1>
+            </article>
+            <article>
                 <!-- Rounded switch -->
                 <label class="switch">
-                            <input id="chkText" type="checkbox" onchange="ChangeText()" value="SQL:" >
+                            <input  type="checkbox" onchange="ChangeText()" >
                             <span class="slider round"></span>
+                           <h1 id="hText" > SQL:</h1>
                 </label>
+                <br/>
             </article>
             <article id="sqlText">
                 <textarea id="txtSql" type="text" rows="10"></textarea><br/>
