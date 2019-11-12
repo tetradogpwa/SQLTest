@@ -203,7 +203,7 @@ $menu_WIDTH: 150px;
 
 .menu:not(:hover)>.menu-dropdown {
     padding: 4px 0;
-    background: #dddddd;
+    background: #ffffff;
     z-index: 99;
 }
 
