@@ -55,7 +55,7 @@ window.onload = () => {
 
 };
 window.onunload = () => {
-    SaveAll();
+    SaveAll(false);
 }
 
 function UpdateSelectedBD() {
@@ -126,7 +126,7 @@ function Delete() {
     var lst = document.getElementById(lstBDId);
     var db = DataBase();
     var ulBD = null;
-
+if(confirm("Are you sure?")){
     for (var i = 0; i < lst.childNodes.length && ulBD == null; i++)
         if (lst.childNodes[i].getAttribute("IdBD") == bd.IdBD)
             ulBD = lst.childNodes[i];
@@ -143,6 +143,7 @@ function Delete() {
                 }
             });
     }
+}
 }
 
 function Save() {
@@ -166,8 +167,8 @@ function _Download(bd) {
     });
 }
 
-function SaveAll() {
-    BD.SaveAll(dataBaseList).then(() => alert("all saved successfully "));
+function SaveAll(mostrarMensaje=true) {
+    BD.SaveAll(dataBaseList).then(() =>if(mostrarMensaje) alert("all saved successfully "));
 }
 
 function DownloadAll() {
