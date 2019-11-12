@@ -53,6 +53,19 @@ window.onload = () => {
 
 };
 
+function ChangeText() {
+    const OCULTO = "oculto";
+    var sqlText = document.getElementById("sqlText");
+    var outPutText = document.getElementById("outPutText");
+    if (sqlText.classList.contains(OCULTO)) {
+        sqlText.classList.remove(OCULTO);
+        outPutText.classList.add(OCULTO);
+    } else {
+        outPutText.classList.remove(OCULTO);
+        sqlText.classList.add(OCULTO);
+    }
+}
+
 function DataBase() {
     return dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
 }

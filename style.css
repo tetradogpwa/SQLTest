@@ -254,3 +254,10 @@ $menu_WIDTH: 150px;
 ul {
     list-style-type: none;
 }
+
+
+/*parte switch SQL/OutPut*/
+
+.oculto {
+    display: none;
+}

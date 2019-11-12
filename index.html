@@ -54,28 +54,31 @@
                 <li>
                     <a href="#click" class="menu">
                         <h2 class="menu-title menu-title_4th">Upload</h2>
-                        <ul class="menu-dropdown">
-                            <li>Load BD</li>
-                        </ul>
                     </a>
                 </li>
             </ul>
         </header>
 
         <section>
-            <article>
+            <article id="sqlText">
                 <h4>SQL:</h4>
                 <textarea id="txtSql" type="text" rows="10"></textarea>
-            </article>
-            <article>
                 <button type="button" onclick="ExecuteSQL()">Execute</button>
                 <button type="button" onclick="Clear()">Clear</button>
 
             </article>
-            <article>
+            <article id="outPutText" class="oculto">
                 <h4>Output:</h4>
                 <textarea id="txtResult" type="text" readonly="true" rows="10"></textarea>
             </article>
+            <footer>
+                <!-- Rounded switch -->
+                <label class="switch">
+                <input type="checkbox" onchange="ChangeText()">
+                <span class="slider round"></span>
+                </label>
+            </footer>
+
         </section>
 
     </div>
