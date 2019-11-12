@@ -337,6 +337,6 @@ input:checked+.slider:before {
 /*sin br h1 slider*/
 
 #hText {
-    margin-top: 0px;
+    margin-top: -25px;
     margin-left: 80px;
 }
