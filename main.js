@@ -48,6 +48,7 @@ window.onload = () => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
+                document.getElementById(cmbBDId).selectedIndex = 0;
             });
 
 
