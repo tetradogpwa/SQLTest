@@ -1,6 +1,7 @@
 //import
 Import("utils.js");
 Import("sql-wasm.js");
+Import("zipUtils.js");
 
 
 
@@ -185,6 +186,22 @@ class BD {
         return Promise.all(savs);
 
 
+    }
+    static BDsToZip(...bds) {
+        bdFiles = ArrayUtils.Root(bds).map((bd) => new FileZip(bd.Name + ".sqlite", bd.Export()));
+        return ZipUtils.FileToZip(bdFiles);
+    }
+    static ZipToBDs(zipData) {
+        return ZipUtils.ZipToFiles(zipData).then((files) => files.map((file) => BD.FromData(file.FileName, file.Data)));
+
+    }
+    static BDFromData(name, dataSQLite) {
+        var bd = new BD();
+        bd.Init = bd.Init.then(() => {
+            bd.Name = name;
+            bd.Import(dataSQLite);
+        });
+        return bd;
     }
     static DeleteFromCache(...bds) {
         bds = ArrayUtils.Root(bds);

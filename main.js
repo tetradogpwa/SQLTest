@@ -7,6 +7,7 @@ function Import(file) {
 }
 
 const SQLSENTENCE = "sql sentence";
+const LASTINDEX = "last bd selected";
 //asi si le cambio el nombre no tendré problemas :)
 var lstBDId = "lstBD";
 var txtSqlId = "txtSql";
@@ -23,16 +24,20 @@ var selectedBD;
 
 window.onload = () => {
     if ('serviceWorker' in navigator) {
-        selectedBD = null;
+
+
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
         document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "";
+        selectedBD = 0;
+
         BD.LoadAll().then((bds) => {
             var promesa;
 
-            if (bds.length == 0)
+            if (bds.length == 0) //si no hay nada guardado hago una nueva BD
                 promesa = NewBD();
             else {
+                //si hay pues las añado
                 promesa = new Promise((okey, error) => {
                     for (var i = 0; i < bds.length; i++)
                         AddToList(bds[i]);
@@ -43,7 +48,8 @@ window.onload = () => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
-                selectedIndex = 0;
+                //pongo la BD
+                selectedIndex = localStorage[LASTINDEX] != undefined ? parseInt(localStorage[LASTINDEX]) : 0;
                 UpdateSelectedBD();
             });
 
@@ -55,10 +61,11 @@ window.onload = () => {
 
 };
 window.onunload = () => {
-    SaveAll();
+    SaveAll(false);
 }
 
 function UpdateSelectedBD() {
+    localStorage.setItem(LASTINDEX, selectedIndex);
     selectedBD = dataBaseList[selectedIndex];
     document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
 
@@ -166,13 +173,21 @@ function _Download(bd) {
     });
 }
 
-function SaveAll() {
-    BD.SaveAll(dataBaseList).then(() => alert("all saved successfully "));
+function SaveAll(mostrarMensaje = true) {
+
+    BD.SaveAll(dataBaseList).then(() => {
+        var message = "all saved successfully ";
+        if (mostrarMensaje)
+            alert(message);
+        else console.log(message)
+
+    });
 }
 
 function DownloadAll() {
-    for (var i = 0; i < dataBaseList.length; i++)
-        _Download(dataBaseList[i]);
+    BD.BDsToZip(dataBaseList).then((dataZip) => {
+        DownloadFile("bds.zip", dataZip, "application/octet-stream");
+    });
 }
 
 function ExecuteSQL() {
