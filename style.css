@@ -81,7 +81,6 @@ $menu_WIDTH: 150px;
     font-weight: bold;
     text-transform: uppercase;
     transition: 0.3s background-color;
-    padding-left: 20px;
 }
 
 .menu-title:before {
@@ -339,5 +338,5 @@ input:checked+.slider:before {
 
 #hText {
     margin-top: 0px;
-    left: 50px;
+    margin-left: 50px;
 }
