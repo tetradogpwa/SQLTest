@@ -57,16 +57,16 @@ function ChangeText() {
     const OCULTO = "oculto";
     var sqlText = document.getElementById("sqlText");
     var outPutText = document.getElementById("outPutText");
-    var checkText = document.getElementById("chkText");
+    var hText = document.getElementById("hText");
 
     if (sqlText.classList.contains(OCULTO)) {
         sqlText.classList.remove(OCULTO);
         outPutText.classList.add(OCULTO);
-        checkText.value = "SQL:";
+        hText.innerHTML = "SQL:";
     } else {
         outPutText.classList.remove(OCULTO);
         sqlText.classList.add(OCULTO);
-        checkText.value = "OutPut:";
+        hText.innerHTML = "OutPut:";
     }
 }
 
