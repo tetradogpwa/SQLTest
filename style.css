@@ -68,7 +68,6 @@ $menu_WIDTH: 150px;
     display: block;
     position: relative;
     cursor: pointer;
-    padding-left: 20px;
 }
 
 .menu-title {
@@ -82,6 +81,7 @@ $menu_WIDTH: 150px;
     font-weight: bold;
     text-transform: uppercase;
     transition: 0.3s background-color;
+    padding-left: 20px;
 }
 
 .menu-title:before {

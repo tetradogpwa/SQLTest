@@ -26,11 +26,7 @@ window.onload = () => {
         selectedBD = null;
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
-        document.getElementById(cmbBDId).onchange = () => {
-            selectedBD = dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
-            document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
-
-        };
+        document.getElementById(cmbBDId).onchange = () => UpdateSelectedBD();
         document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "";
         BD.LoadAll().then((bds) => {
             var promesa;
@@ -48,7 +44,7 @@ window.onload = () => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
-                document.getElementById(cmbBDId).selectedIndex = 0;
+                UpdateSelectedBD();
             });
 
 
@@ -58,6 +54,13 @@ window.onload = () => {
 
 
 };
+
+function UpdateSelectedBD() {
+    selectedBD = dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
+    document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
+
+}
+
 
 function ChangeText() {
     const OCULTO = "oculto";
@@ -97,7 +100,7 @@ function Clone() {
 function AddToList(bd) {
     //añade a la lista y al cm
     SelectUtils.Add(document.getElementById(cmbBDId), bd.IdBD, bd.Name);
-    ArrayUtils.Push(dataBaseList, bd);
+    ArrayUtils.Add(dataBaseList, bd);
 }
 
 function Delete() {
