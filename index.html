@@ -60,24 +60,23 @@
         </header>
 
         <section>
+            <article>
+                <!-- Rounded switch -->
+                <label class="switch">
+                            <input id="chkText" type="checkbox" onchange="ChangeText()" value="SQL:" >
+                            <span class="slider round"></span>
+                </label>
+            </article>
             <article id="sqlText">
-                <h4>SQL:</h4>
                 <textarea id="txtSql" type="text" rows="10"></textarea><br/>
                 <button type="button" onclick="ExecuteSQL()">Execute</button>
                 <button type="button" onclick="Clear()">Clear</button>
 
             </article>
             <article id="outPutText" class="oculto">
-                <h4>Output:</h4>
                 <textarea id="txtResult" type="text" readonly="true" rows="10"></textarea>
             </article>
-            <footer>
-                <!-- Rounded switch -->
-                <label class="switch">
-                <input type="checkbox" onchange="ChangeText()">
-                <span class="slider round"></span>
-                </label>
-            </footer>
+
 
         </section>
 
