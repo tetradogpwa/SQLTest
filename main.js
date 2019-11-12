@@ -88,7 +88,7 @@ function NewBD() {
     });
 }
 
-function CloneBD() {
+function Clone() {
     //clona la BD actual y la añade a la lista
     return DataBase().Clone().then((db) => db.Save()).then(AddToList);
 }
@@ -99,7 +99,7 @@ function AddToList(bd) {
     ArrayUtils.Add(dataBaseList, bd);
 }
 
-function DeleteBD() {
+function Delete() {
     //elimino la BD actual
     var cmb = document.getElementById(cmbBDId);
     var db = DataBase();
@@ -123,16 +123,16 @@ function Save() {
     DataBase().Save().then((bd) => alert("saved successfully bd=" + bd.Name));
 }
 
-function UpLoadBD() {
+function UpLoad() {
     //pide unos archivos miro si son SQLite y luego los añado
 
 }
 
-function DownloadBD() {
-    Download(DataBase());
+function Download() {
+    _Download(DataBase());
 }
 
-function Download(bd) {
+function _Download(bd) {
 
     bd.Export().then((data) => {
         DownloadFile(bd.Name + ".sqlite", data, "application/octet-stream");
@@ -144,9 +144,9 @@ function SaveAll() {
     BD.SaveAll(dataBaseList).then(() => alert("all saved successfully "));
 }
 
-function DownloadAllBD() {
+function DownloadAll() {
     for (var i = 0; i < dataBaseList.length; i++)
-        Download(dataBaseList[i]);
+        _Download(dataBaseList[i]);
 }
 
 function ExecuteSQL() {
