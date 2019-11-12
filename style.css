@@ -332,3 +332,10 @@ input:checked+.slider:before {
 .slider.round:before {
     border-radius: 50%;
 }
+
+
+/*sin br h1 slider*/
+
+#hText {
+    margin-top: 0px;
+}
