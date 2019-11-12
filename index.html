@@ -18,14 +18,48 @@
     <div id="loader"></div>
     <div id="contentBox" class="postLoader">
         <header>
-            <h1>SQL Test</h1>
-            <select id="cmbBD">
-        </select>
-            <button type="button" onclick="NewBD()">Add</button>
-            <button type="button" onclick="CloneBD()">Clone</button>
-            <button type="button" onclick="DeleteBD()">Delete</button>
-            <button type="button" onclick="Save()">Save</button>
-            <button type="button" onclick="DownloadBD()">Download</button>
+            <ul class="hList">
+                <li>
+                    <a href="#click" class="menu">
+                        <h2 class="menu-title">Selected BD</h2>
+                        <ul class="menu-dropdown">
+                            <li>Save</li>
+                            <li>Clone</li>
+                            <li>Delete</li>
+                            <li>Download</li>
+                        </ul>
+                    </a>
+                </li>
+                <li>
+                    <a href="#click" class="menu">
+                        <h2 class="menu-title menu-title_2nd">Change BD</h2>
+                        <ul class="menu-dropdown">
+                            <li>
+                                <select id="cmbBD">
+                           </select>
+                            </li>
+
+                        </ul>
+                    </a>
+                </li>
+                <li>
+                    <a href="#click" class="menu">
+                        <h2 class="menu-title menu-title_3rd">All BD</h2>
+                        <ul class="menu-dropdown">
+                            <li>Download</li>
+                            <li>Save</li>
+                        </ul>
+                    </a>
+                </li>
+                <li>
+                    <a href="#click" class="menu">
+                        <h2 class="menu-title menu-title_4th">Upload</h2>
+                        <ul class="menu-dropdown">
+                            <li>Load BD</li>
+                        </ul>
+                    </a>
+                </li>
+            </ul>
         </header>
 
         <section>
@@ -43,13 +77,7 @@
                 <textarea id="txtResult" type="text" readonly="true" rows="10"></textarea>
             </article>
         </section>
-        <footer>
 
-            <button type="button" onclick="UpLoadBD()">Load</button>
-            <button type="button" onclick="SaveAll()">Save All</button>
-            <button type="button" onclick="DownloadAllBD()">Download All</button>
-
-        </footer>
     </div>
 </body>
 
