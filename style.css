@@ -68,6 +68,7 @@ $menu_WIDTH: 150px;
     display: block;
     position: relative;
     cursor: pointer;
+    padding-left: 5px;
 }
 
 .menu-title {
