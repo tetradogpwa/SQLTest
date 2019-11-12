@@ -479,7 +479,6 @@ class TableName {
 
 
 
-
 function DownloadFile(name, data, typeData) {
     var blob = new Blob([data], { type: typeData });
     var link = document.createElement("a");
