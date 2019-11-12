@@ -240,7 +240,7 @@ $menu_WIDTH: 150px;
 }
 
 .hList {
-    //overflow: hidden;
+    overflow: hidden;
 }
 
 .hList>* {
