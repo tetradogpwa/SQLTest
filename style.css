@@ -250,3 +250,7 @@ $menu_WIDTH: 150px;
 .hList>*+* {
     margin-left: 0;
 }
+
+ul {
+    list-style-type: none;
+}
