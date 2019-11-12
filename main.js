@@ -8,7 +8,7 @@ function Import(file) {
 
 const SQLSENTENCE = "sql sentence";
 //asi si le cambio el nombre no tendré problemas :)
-var cmbBDId = "cmbBD";
+var lstBDId = "lstBD";
 var txtSqlId = "txtSql";
 var txtResultId = "txtResult";
 var loaderId = "loader";
@@ -26,7 +26,6 @@ window.onload = () => {
         selectedBD = null;
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
-        document.getElementById(cmbBDId).onchange = () => UpdateSelectedBD();
         document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "";
         BD.LoadAll().then((bds) => {
             var promesa;
@@ -44,6 +43,7 @@ window.onload = () => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
+                selectedIndex = 0;
                 UpdateSelectedBD();
             });
 
@@ -59,7 +59,7 @@ window.onunload = () => {
 }
 
 function UpdateSelectedBD() {
-    selectedBD = dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
+    selectedBD = dataBaseList[selectedIndex];
     document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
 
 }
@@ -102,26 +102,45 @@ function Clone() {
 
 function AddToList(bd) {
     //añade a la lista y al cm
-    SelectUtils.Add(document.getElementById(cmbBDId), bd.IdBD, bd.Name);
+    var ulBD = document.createElement("ul");
+    ulBD.setAttribute("IdBD", bd.IdBD);
+    ulBD.innerHTML = bd.Name;
+    ulBD.onclick = (e) => {
+        var encontrado = false;
+        var idBD = e.target.getAttribute("IdBD");
+        for (var index = 0; index < dataBaseList.length && !encontrado; index++) {
+            encontrado = dataBaseList[index].IdBD == idBD;
+            if (encontrado)
+                selectedIndex = index;
+        }
+        if (encontrado)
+            UpdateSelectedBD();
+
+    }
+    document.getElementById(lstBDId).appendChild(ulBD);
     ArrayUtils.Add(dataBaseList, bd);
 }
 
 function Delete() {
     //elimino la BD actual
-    var cmb = document.getElementById(cmbBDId);
+    var lst = document.getElementById(lstBDId);
     var db = DataBase();
-    var pos = SelectUtils.FindPositions(cmb, db.IdBD);
+    var ulBD = null;
 
-    if (pos.length == 0)
-        pos = -1;
-    else pos = pos[0];
+    for (var i = 0; i < lst.childNodes.length && ulBD == null; i++)
+        if (lst.childNodes[i].getAttribute("IdBD") == bd.IdBD)
+            ulBD = lst.childNodes[i];
 
-    if (pos > -1) {
+
+
+    if (ulBD != null) {
         BD.DeleteFromCache(db)
             .then(() => ArrayUtils.Remove(dataBaseList, db))
-            .then(() => SelectUtils.RemoveAt(cmb, pos)).then(() => {
-                if (SelectUtils.Count(cmb) == 0)
-                    return NewBD();
+            .then(() => {
+                ulBD.remove();
+                if (dataBaseList.length == 0) {
+                    NewBD().then(() => SaveAll());
+                }
             });
     }
 }
