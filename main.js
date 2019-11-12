@@ -27,7 +27,7 @@ window.onload = () => {
         navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
         document.getElementById(cmbBDId).onchange = () => {
-            selectedBD = dataBaseList[document.getElementById(cmbBDId).selectedIndex];
+            selectedBD = dataBaseList[SelectUtils.SelectedIndex(document.getElementById(cmbBDId))];
             document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
 
         };
@@ -97,7 +97,7 @@ function Clone() {
 function AddToList(bd) {
     //añade a la lista y al cm
     SelectUtils.Add(document.getElementById(cmbBDId), bd.IdBD, bd.Name);
-    ArrayUtils.Add(dataBaseList, bd);
+    ArrayUtils.Push(dataBaseList, bd);
 }
 
 function Delete() {

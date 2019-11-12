@@ -143,6 +143,9 @@ class SelectUtils {
     static GetAt(select, position) {
         return select.options[position];
     }
+    static GetSelectedItem(select) {
+        return SelectUtils.GetAt(select, SelectUtils.SelectedIndex(select));
+    }
     static Count(select) {
         return select.options.length;
     }
