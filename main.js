@@ -90,16 +90,18 @@ function ChangeText() {
     var divBtns = document.getElementById("ALadoHText");
 
     if (sqlText.classList.contains(OCULTO)) {
-        sqlText.classList.remove(OCULTO);
         divBtns.classList.remove(OCULTO);
+        sqlText.classList.remove(OCULTO);
+
 
         outPutText.classList.add(OCULTO);
         hText.innerHTML = "SQL:";
     } else {
+        divBtns.classList.add(OCULTO);
         outPutText.classList.remove(OCULTO);
 
         sqlText.classList.add(OCULTO);
-        divBtns.classList.add(OCULTO);
+
         hText.innerHTML = "OutPut:";
     }
 }
