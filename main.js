@@ -1,4 +1,4 @@
-const USER = "tetradogpwa";
+﻿const USER = "tetradogpwa";
 const ROOT = "https://" + USER + ".github.io/Utils/";
 
 Import(ROOT + "BDSql/bd.js");
@@ -6,10 +6,14 @@ Import(ROOT + "Utils/Utils.js");
 Import("sw.js");
 
 function Import(file) {
-    var node = '<script language=\"JavaScript\" type=\"text/JavaScript\" src=' + file + '></script>';
+    var scriptNode = document.createElement("script");
+    scriptNode.setAttribute("language", "JavaScript");
+    scriptNode.setAttribute("type", "text/JavaScript");
+    scriptNode.setAttribute("src", file);
+
     //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
-    if (!document.contains(node))
-        document.write(node);
+    if (!document.contains(scriptNode))
+        document.write(scriptNode.outerHTML);
 
 }
 
