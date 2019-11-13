@@ -1,5 +1,5 @@
 const USER = "tetradogpwa";
-const ROOT = USER + ".github.io/Utils/";
+const ROOT = "https://" + USER + ".github.io/Utils/";
 
 Import(ROOT + "BDSql/bd.js");
 Import(ROOT + "Utils/Utils.js");
