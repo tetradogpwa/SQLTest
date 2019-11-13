@@ -1,5 +1,3 @@
-const USER = "tetradogpwa";
-const ROOT = USER + ".github.io/Utils/";
 const CACHE_VERSION_ANTERIOR = 29; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
 const APP = "SQLTest";
