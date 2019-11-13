@@ -1,4 +1,6 @@
-const CACHE_VERSION_ANTERIOR = 28; //subo aqui para no tener problemas :D
+const USER = "tetradogpwa";
+const ROOT = USER + ".github.io/Utils/";
+const CACHE_VERSION_ANTERIOR = 29; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
 const APP = "SQLTest";
 const CACHE_INMUTABLE = "CACHE_INMUTABLE_" + APP;
@@ -6,8 +8,8 @@ const CACHE_SHELL = "CACHE_SHELL_" + APP;
 const CACHE_DINAMICO = "CACHE_DINAMICO_" + APP;
 const INMUTABLES = [
     //como no va cambiar mejor que se descargue solo una vez :)
-    "sql-wasm.js",
-    "sql-wasm.wasm",
+    ROOT + "BDSql/sql-wasm.js",
+    ROOT + "BDSql/sql-wasm.wasm",
 
 ];
 const SHELL = [
@@ -18,9 +20,20 @@ const SHELL = [
     "images/icons/icon-512x512.png",
     "sw.js",
     "main.js",
-    "bd.js",
-    "utils.js",
-    "manifest.json"
+    "manifest.json",
+
+
+    ROOT + "BDSql/bd.js",
+
+    ROOT + "Utils/Utils.js",
+    ROOT + "Utils/IndexedBDUtils.js",
+    ROOT + "Utils/NodeListUtils.js",
+    ROOT + "Utils/SelectUtils.js",
+    ROOT + "Utils/ArrayUtils.js",
+    ROOT + "Utils/ByteArrayUtils.js",
+    ROOT + "Utils/CacheUtils.js",
+    ROOT + "Utils/StringUtils.js",
+    ROOT + "Utils/ZipUtils.js",
 
 ];
 
