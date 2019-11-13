@@ -1,4 +1,8 @@
-Import("bd.js");
+const USER = "tetradogpwa";
+const ROOT = USER + ".github.io/Utils/";
+
+Import(ROOT + "BDSql/bd.js");
+Import(ROOT + "Utils/Utils.js");
 Import("sw.js");
 
 function Import(file) {
@@ -24,7 +28,7 @@ var selectedBD;
 
 window.onload = () => {
     if ('serviceWorker' in navigator) {
-      
+
 
 
         navigator.serviceWorker.register('/SQLTest/sw.js');
@@ -35,7 +39,7 @@ window.onload = () => {
         BD.LoadAll().then((bds) => {
             var promesa;
 
-       
+
             if (bds.length == 0) //si no hay nada guardado hago una nueva BD
                 promesa = NewBD();
             else {
@@ -50,7 +54,7 @@ window.onload = () => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
-          
+
                 //pongo la BD
                 selectedIndex = localStorage[LASTINDEX] != undefined ? parseInt(localStorage[LASTINDEX]) : 0;
                 UpdateSelectedBD();
@@ -64,7 +68,7 @@ window.onload = () => {
 
 };
 window.onunload = () => {
- 
+
     SaveAll(false);
 }
 
@@ -137,24 +141,24 @@ function Delete() {
     var lst = document.getElementById(lstBDId);
     var db = DataBase();
     var ulBD = null;
-if(confirm("Are you sure?")){
-    for (var i = 0; i < lst.childNodes.length && ulBD == null; i++)
-        if (lst.childNodes[i].getAttribute("IdBD") == bd.IdBD)
-            ulBD = lst.childNodes[i];
+    if (confirm("Are you sure?")) {
+        for (var i = 0; i < lst.childNodes.length && ulBD == null; i++)
+            if (lst.childNodes[i].getAttribute("IdBD") == bd.IdBD)
+                ulBD = lst.childNodes[i];
 
 
 
-    if (ulBD != null) {
-        BD.DeleteFromCache(db)
-            .then(() => ArrayUtils.Remove(dataBaseList, db))
-            .then(() => {
-                ulBD.remove();
-                if (dataBaseList.length == 0) {
-                    NewBD().then(() => SaveAll());
-                }
-            });
+        if (ulBD != null) {
+            BD.DeleteFromCache(db)
+                .then(() => ArrayUtils.Remove(dataBaseList, db))
+                .then(() => {
+                    ulBD.remove();
+                    if (dataBaseList.length == 0) {
+                        NewBD().then(() => SaveAll());
+                    }
+                });
+        }
     }
-}
 }
 
 function Save() {
@@ -191,7 +195,8 @@ function SaveAll(mostrarMensaje = true) {
 
 function DownloadAll() {
     BD.BDsToZip(dataBaseList).then((dataZip) => {
-        DownloadFile("bds.zip", dataZip, "application/octet-stream");    });
+        DownloadFile("bds.zip", dataZip, "application/octet-stream");
+    });
 }
 
 function ExecuteSQL() {
