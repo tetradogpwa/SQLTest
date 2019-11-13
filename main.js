@@ -24,6 +24,7 @@ var selectedBD;
 
 window.onload = () => {
     if ('serviceWorker' in navigator) {
+      
 
 
         navigator.serviceWorker.register('/SQLTest/sw.js');
@@ -34,6 +35,7 @@ window.onload = () => {
         BD.LoadAll().then((bds) => {
             var promesa;
 
+       
             if (bds.length == 0) //si no hay nada guardado hago una nueva BD
                 promesa = NewBD();
             else {
@@ -48,6 +50,7 @@ window.onload = () => {
                 //quito el loader :)
                 document.getElementById(loaderId).remove();
                 document.getElementById(contentBoxId).classList.remove(postLoaderClass);
+          
                 //pongo la BD
                 selectedIndex = localStorage[LASTINDEX] != undefined ? parseInt(localStorage[LASTINDEX]) : 0;
                 UpdateSelectedBD();
@@ -61,6 +64,7 @@ window.onload = () => {
 
 };
 window.onunload = () => {
+ 
     SaveAll(false);
 }
 
@@ -133,7 +137,7 @@ function Delete() {
     var lst = document.getElementById(lstBDId);
     var db = DataBase();
     var ulBD = null;
-
+if(confirm("Are you sure?")){
     for (var i = 0; i < lst.childNodes.length && ulBD == null; i++)
         if (lst.childNodes[i].getAttribute("IdBD") == bd.IdBD)
             ulBD = lst.childNodes[i];
@@ -150,6 +154,7 @@ function Delete() {
                 }
             });
     }
+}
 }
 
 function Save() {
@@ -186,8 +191,7 @@ function SaveAll(mostrarMensaje = true) {
 
 function DownloadAll() {
     BD.BDsToZip(dataBaseList).then((dataZip) => {
-        DownloadFile("bds.zip", dataZip, "application/octet-stream");
-    });
+        DownloadFile("bds.zip", dataZip, "application/octet-stream");    });
 }
 
 function ExecuteSQL() {
