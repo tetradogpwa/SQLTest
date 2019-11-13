@@ -41,14 +41,13 @@ textarea {
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,700);
 html {
     height: 100%;
-    background-color: #f8f8f8;
 }
 
 body {
     overflow: hidden;
     height: 100%;
     margin: 0 auto;
-    background-color: #ffffff;
+    background-color: white;
     font-family: 'Roboto', sans-serif;
     color: #555555;
 }
@@ -181,7 +180,7 @@ $menu_WIDTH: 150px;
     min-width: 100%;
     padding: 15px 0;
     position: absolute;
-    background: #ebebeb;
+    background-color: white;
     z-index: 100;
     transition: 0.5s padding, 0.5s background;
 }
@@ -190,7 +189,7 @@ $menu_WIDTH: 150px;
     content: "";
     display: block;
     height: 0;
-    border-top: 5px solid #ebebeb;
+    border-top: 5px solid white;
     border-left: ($menu_WIDTH / 2) solid transparent;
     border-right: ($menu_WIDTH / 2) solid transparent;
     position: absolute;
@@ -202,7 +201,7 @@ $menu_WIDTH: 150px;
 
 .menu:not(:hover)>.menu-dropdown {
     padding: 4px 0;
-    background: #ffffff;
+    background: white;
     z-index: 99;
 }
 
@@ -234,6 +233,7 @@ $menu_WIDTH: 150px;
     padding-bottom: 0;
     margin: 0;
     color: rgba(25, 25, 25, 0);
+    background: white;
     transition: 0.5s 0.1s height, 0.5s 0.1s padding, 0.5s 0.1s margin, 0.3s color, 0.6s visibility;
     z-index: 99;
 }
@@ -258,7 +258,7 @@ ul {
 /*parte switch SQL/OutPut*/
 
 .oculto {
-    display: none;
+    visibility: hidden;
 }
 
 
@@ -338,4 +338,32 @@ input:checked+.slider:before {
 #hText {
     margin-top: -15px;
     margin-left: 80px;
+}
+
+#ALadoHText {
+    margin-top: -30px;
+    margin-left: 90%;
+    display: flex;
+}
+
+
+/*botones*/
+
+.play {
+    border-top: 10px solid white;
+    border-bottom: 10px solid white;
+    border-left: 20px solid green;
+    height: 0px;
+    padding-right: 10%;
+}
+
+.clear {
+    background: url(images/clear.svg) no-repeat top left;
+    background-size: contain;
+    height: 30px;
+    width: 30px;
+}
+
+textarea {
+    background-color: rgb(240, 240, 240);
 }

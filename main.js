@@ -87,14 +87,19 @@ function ChangeText() {
     var sqlText = document.getElementById("sqlText");
     var outPutText = document.getElementById("outPutText");
     var hText = document.getElementById("hText");
+    var divBtns = document.getElementById("ALadoHText");
 
     if (sqlText.classList.contains(OCULTO)) {
         sqlText.classList.remove(OCULTO);
+        divBtns.classList.remove(OCULTO);
+
         outPutText.classList.add(OCULTO);
         hText.innerHTML = "SQL:";
     } else {
         outPutText.classList.remove(OCULTO);
+
         sqlText.classList.add(OCULTO);
+        divBtns.classList.add(OCULTO);
         hText.innerHTML = "OutPut:";
     }
 }
