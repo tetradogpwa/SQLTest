@@ -156,9 +156,9 @@ function Delete() {
     var db = DataBase();
     var ulBD = null;
     if (confirm("Are you sure?")) {
-        for (var i = 0; i < lst.childNodes.length && ulBD == null; i++)
-            if (lst.childNodes[i].getAttribute("IdBD") == bd.IdBD)
-                ulBD = lst.childNodes[i];
+        for (var i = 0; i < lst.children.length && ulBD == null; i++)
+            if (lst.children[i].getAttribute("IdBD") == bd.IdBD)
+                ulBD = lst.children[i];
 
 
 
@@ -220,7 +220,7 @@ function ExecuteSQL() {
     localStorage.setItem(SQLSENTENCE, txtSQLSentence.value);
     selectedBD.Execute(txtSQLSentence.value)
         .then((result) => {
-            console.log(result);
+          //  console.log(result);
             txtResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(result) + "'";
 
         }).catch((error) => {
@@ -231,4 +231,5 @@ function ExecuteSQL() {
 
 function Clear() {
     document.getElementById(txtSqlId).value = "";
+localStorage.remove(SQLSENTENCE);
 }
