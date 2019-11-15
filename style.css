@@ -345,6 +345,7 @@ input:checked+.slider:before {
     margin-top: -30px;
     margin-left: 70%;
     display: flex;
+    justify-content: space-around;
 }
 
 
@@ -355,7 +356,6 @@ input:checked+.slider:before {
     border-bottom: 10px solid white;
     border-left: 20px solid green;
     height: 0px;
-    padding-right: 50%;
 }
 
 .clear {
