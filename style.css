@@ -68,6 +68,12 @@ $menu_WIDTH: 150px;
     cursor: pointer;
 }
 
+
+/*#hList {
+    display: flex;
+    justify-content: space-around;
+}*/
+
 .menu-title {
     display: block;
     width: $menu_WIDTH;
@@ -343,9 +349,11 @@ input:checked+.slider:before {
 
 #ALadoHText {
     margin-top: -30px;
-    margin-left: 70%;
+    margin-left: 45%;
     display: flex;
     justify-content: space-around;
+    width: 30%;
+    max-width: 500px;
 }
 
 
