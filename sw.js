@@ -1,3 +1,7 @@
+const USER = "tetradogpwa";
+const ROOTUTILS = "https://" + USER + ".github.io/Utils/";
+
+
 const CACHE_VERSION_ANTERIOR = 35; //subo aqui para no tener problemas :D
 const CACHE_VERSION = CACHE_VERSION_ANTERIOR + 1;
 const APP = "SQLTest";
@@ -6,8 +10,8 @@ const CACHE_SHELL = "CACHE_SHELL_" + APP;
 const CACHE_DINAMICO = "CACHE_DINAMICO_" + APP;
 const INMUTABLES = [
     //como no va cambiar mejor que se descargue solo una vez :)
-    window._ROOTUTILS + "BDSql/sql-wasm.js",
-    window._ROOTUTILS + "BDSql/sql-wasm.wasm",
+    ROOTUTILS + "BDSql/sql-wasm.js",
+    ROOTUTILS + "BDSql/sql-wasm.wasm",
 
 ];
 const SHELL = [
@@ -21,17 +25,17 @@ const SHELL = [
     "manifest.json",
 
 
-    window._ROOTUTILS + "BDSql/bd.js",
+    ROOTUTILS + "BDSql/bd.js",
 
-    window._ROOTUTILS + "Utils/Utils.js",
-    window._ROOTUTILS + "Utils/IndexedBDUtils.js",
-    window._ROOTUTILS + "Utils/NodeListUtils.js",
-    window._ROOTUTILS + "Utils/SelectUtils.js",
-    window._ROOTUTILS + "Utils/ArrayUtils.js",
-    window._ROOTUTILS + "Utils/ByteArrayUtils.js",
-    window._ROOTUTILS + "Utils/CacheUtils.js",
-    window._ROOTUTILS + "Utils/StringUtils.js",
-    window._ROOTUTILS + "Utils/ZipUtils.js",
+    ROOTUTILS + "Utils/Utils.js",
+    ROOTUTILS + "Utils/IndexedBDUtils.js",
+    ROOTUTILS + "Utils/NodeListUtils.js",
+    ROOTUTILS + "Utils/SelectUtils.js",
+    ROOTUTILS + "Utils/ArrayUtils.js",
+    ROOTUTILS + "Utils/ByteArrayUtils.js",
+    ROOTUTILS + "Utils/CacheUtils.js",
+    ROOTUTILS + "Utils/StringUtils.js",
+    ROOTUTILS + "Utils/ZipUtils.js",
 
 ];
 
