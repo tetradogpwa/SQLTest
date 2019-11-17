@@ -12,7 +12,7 @@ function Import(file) {
     scriptNode.setAttribute("src", file);
 
     //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
-    if (!document.contains(scriptNode))
+    if (!document.head.outerHTML.includes(scriptNode.outerHTML))
         document.write(scriptNode.outerHTML);
 
 }
