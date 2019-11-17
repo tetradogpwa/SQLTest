@@ -1,6 +1,18 @@
 ﻿const USER = "tetradogpwa";
 const ROOT = "https://" + USER + ".github.io/Utils/";
+window.Import = (url) => {
+    try {
+        var scriptNode = document.createElement("script");
+        scriptNode.setAttribute("language", "JavaScript");
+        scriptNode.setAttribute("type", "text/JavaScript");
+        scriptNode.setAttribute("src", url);
 
+        //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
+        if (!document.head.outerHTML.includes(scriptNode.outerHTML))
+            document.write(scriptNode.outerHTML);
+    } catch {}
+
+};
 
 
 
@@ -21,9 +33,9 @@ var dataBaseList = [];
 var selectedBD;
 
 //import
-self.importScripts(ROOT + "BDSql/bd.js");
-self.importScripts(ROOT + "Utils/Utils.js");
-self.importScripts("sw.js");
+window.Import(ROOT + "BDSql/bd.js");
+window.Import(ROOT + "Utils/Utils.js");
+window.Import("sw.js");
 
 
 
