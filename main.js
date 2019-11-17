@@ -1,21 +1,8 @@
 ﻿const USER = "tetradogpwa";
 const ROOT = "https://" + USER + ".github.io/Utils/";
 
-Import(ROOT + "BDSql/bd.js");
-Import(ROOT + "Utils/Utils.js");
-Import("sw.js");
 
-function Import(file) {
-    var scriptNode = document.createElement("script");
-    scriptNode.setAttribute("language", "JavaScript");
-    scriptNode.setAttribute("type", "text/JavaScript");
-    scriptNode.setAttribute("src", file);
 
-    //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
-    if (!document.head.outerHTML.includes(scriptNode.outerHTML))
-        document.write(scriptNode.outerHTML);
-
-}
 
 const SQLSENTENCE = "sql sentence";
 const LASTINDEX = "last bd selected";
@@ -32,6 +19,13 @@ var hSelectedBDId = "hSelectedBD";
 var dataBaseList = [];
 
 var selectedBD;
+
+//import
+self.importScripts(ROOT + "BDSql/bd.js");
+self.importScripts(ROOT + "Utils/Utils.js");
+self.importScripts("sw.js");
+
+
 
 window.onload = () => {
     if ('serviceWorker' in navigator) {
@@ -220,7 +214,7 @@ function ExecuteSQL() {
     localStorage.setItem(SQLSENTENCE, txtSQLSentence.value);
     selectedBD.Execute(txtSQLSentence.value)
         .then((result) => {
-          //  console.log(result);
+            //  console.log(result);
             txtResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(result) + "'";
 
         }).catch((error) => {
@@ -231,5 +225,5 @@ function ExecuteSQL() {
 
 function Clear() {
     document.getElementById(txtSqlId).value = "";
-localStorage.remove(SQLSENTENCE);
+    localStorage.remove(SQLSENTENCE);
 }
