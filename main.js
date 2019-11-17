@@ -1,16 +1,19 @@
 ﻿const USER = "tetradogpwa";
 const ROOT = "https://" + USER + ".github.io/Utils/";
 window.Import = (url) => {
-    try {
-        var scriptNode = document.createElement("script");
-        scriptNode.setAttribute("language", "JavaScript");
-        scriptNode.setAttribute("type", "text/JavaScript");
-        scriptNode.setAttribute("src", url);
 
-        //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
-        if (!document.head.outerHTML.includes(scriptNode.outerHTML))
-            document.write(scriptNode.outerHTML);
-    } catch {}
+    var scriptNode = document.createElement("script");
+    scriptNode.setAttribute("language", "JavaScript");
+    scriptNode.setAttribute("type", "text/JavaScript");
+    scriptNode.setAttribute("src", url);
+    if (!window._MapImportScript)
+        window._MapImportScript = new Map();
+    //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
+    if (!window._MapImportScript.has(url)) {
+        document.write(scriptNode.outerHTML);
+        window._MapImportScript.set(url, url);
+    }
+
 
 };
 
