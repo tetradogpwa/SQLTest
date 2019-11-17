@@ -1,5 +1,5 @@
-﻿const USER = "tetradogpwa";
-const ROOT = "https://" + USER + ".github.io/Utils/";
+﻿window._USER = "tetradogpwa";
+window._ROOTUTILS = "https://" + window._USER + ".github.io/Utils/";
 window.Import = (url) => {
 
     var scriptNode = document.createElement("script");
@@ -36,8 +36,8 @@ var dataBaseList = [];
 var selectedBD;
 
 //import
-window.Import(ROOT + "BDSql/bd.js");
-window.Import(ROOT + "Utils/Utils.js");
+window.Import(window._ROOTUTILS + "BDSql/bd.js");
+window.Import(window._ROOTUTILS + "Utils/Utils.js");
 window.Import("sw.js");
 
 

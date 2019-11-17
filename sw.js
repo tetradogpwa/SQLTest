@@ -6,8 +6,8 @@ const CACHE_SHELL = "CACHE_SHELL_" + APP;
 const CACHE_DINAMICO = "CACHE_DINAMICO_" + APP;
 const INMUTABLES = [
     //como no va cambiar mejor que se descargue solo una vez :)
-    ROOT + "BDSql/sql-wasm.js",
-    ROOT + "BDSql/sql-wasm.wasm",
+    window._ROOTUTILS + "BDSql/sql-wasm.js",
+    window._ROOTUTILS + "BDSql/sql-wasm.wasm",
 
 ];
 const SHELL = [
@@ -21,17 +21,17 @@ const SHELL = [
     "manifest.json",
 
 
-    ROOT + "BDSql/bd.js",
+    window._ROOTUTILS + "BDSql/bd.js",
 
-    ROOT + "Utils/Utils.js",
-    ROOT + "Utils/IndexedBDUtils.js",
-    ROOT + "Utils/NodeListUtils.js",
-    ROOT + "Utils/SelectUtils.js",
-    ROOT + "Utils/ArrayUtils.js",
-    ROOT + "Utils/ByteArrayUtils.js",
-    ROOT + "Utils/CacheUtils.js",
-    ROOT + "Utils/StringUtils.js",
-    ROOT + "Utils/ZipUtils.js",
+    window._ROOTUTILS + "Utils/Utils.js",
+    window._ROOTUTILS + "Utils/IndexedBDUtils.js",
+    window._ROOTUTILS + "Utils/NodeListUtils.js",
+    window._ROOTUTILS + "Utils/SelectUtils.js",
+    window._ROOTUTILS + "Utils/ArrayUtils.js",
+    window._ROOTUTILS + "Utils/ByteArrayUtils.js",
+    window._ROOTUTILS + "Utils/CacheUtils.js",
+    window._ROOTUTILS + "Utils/StringUtils.js",
+    window._ROOTUTILS + "Utils/ZipUtils.js",
 
 ];
 
