@@ -1,0 +1,26 @@
+﻿@page "/DBManage"
+@inject IJSRuntime JS
+
+
+<h3>Administrar bases de datos</h3>
+
+<button @onclick="@(()=>Create())">Create</button>
+<TextBox OnChange="@((name) => Name = (string)name)" /><br/>
+
+<button @onclick="@(()=>SaveAll())">Save All</button>
+
+@code {
+    [CascadingParameter] SortedList<string, SqlTest.Entity.BaseDeDatos> Dic { get; set; }
+    string Name { get; set; }
+
+    async Task Create()
+    {
+        Dic.Add(Name, await SqlTest.Entity.BaseDeDatos.Create(JS, Name));
+        await JS.MostrarMensajeAsync($"Se ha creado la BD {Name} correctamente!");
+    }
+    async Task SaveAll()
+    {
+        await SqlTest.Entity.BaseDeDatos.SaveAll(JS);
+        await JS.MostrarMensajeAsync($"Se ha guardado todo correctamente!");
+    }
+}

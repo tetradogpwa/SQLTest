@@ -1,0 +1,32 @@
+﻿@page "/"
+@if(Dic==default)
+{
+    <text>Ups</text>
+}
+else if (Dic.Count > 0)
+{
+    <ComboBox Source="@Dic.GetValues()" OnSelectionChanged="@((SqlTest.Entity.BaseDeDatos bd) => { SelectedBD = bd; })" />
+    @if (SelectedBD != default)
+    {
+        <button @onclick="@(async() => Output = await SelectedBD.RunAsync(Sql))">Run</button><br/>
+        <TextBox MultiLine="true" OnChange="@((sqlStr)=>Sql=(string)sqlStr)" /><br/>
+        <div id="output">
+            @Output
+        </div>
+
+    }
+    else
+    {
+        <text>No hay Base de datos seleccionada</text>
+    }
+}
+else
+{
+    <DBManage />
+}
+@code{
+    [CascadingParameter] SortedList<string, SqlTest.Entity.BaseDeDatos> Dic { get; set; }
+    SqlTest.Entity.BaseDeDatos SelectedBD { get; set; }
+    string Sql { get; set; }
+    string Output { get; set; }
+}

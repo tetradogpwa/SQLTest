@@ -1,0 +1,26 @@
+﻿@inject IJSRuntime JS
+@inherits LayoutComponentBase
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+    </div>
+
+    <div class="content px-4">
+        <CascadingValue Value="dic">
+            @Body
+        </CascadingValue>
+    </div>
+</div>
+@code{
+    SortedList<string, SqlTest.Entity.BaseDeDatos> dic;
+    protected override async Task OnInitializedAsync()
+    {
+        dic = await SqlTest.Entity.BaseDeDatos.LoadAll(JS);
+        await base.OnInitializedAsync();
+    }
+}
