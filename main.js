@@ -1,4 +1,5 @@
 ﻿window._USER = "tetradogpwa";
+window._APP = "SQLTest";
 window._ROOTUTILS = "https://" + window._USER + ".github.io/Utils/";
 window.Import = (url) => {
 
@@ -16,229 +17,127 @@ window.Import = (url) => {
 
 
 };
-
-
-
-const SQLSENTENCE = "sql sentence";
-const LASTINDEX = "last bd selected";
-//asi si le cambio el nombre no tendré problemas :)
-var lstBDId = "lstBD";
-var txtSqlId = "txtSql";
-var txtResultId = "txtResult";
-var loaderId = "loader";
-var contentBoxId = "contentBox";
-var postLoaderClass = "postLoader";
-var hSelectedBDId = "hSelectedBD";
-
-//inicializo la lista
-var dataBaseList = [];
-
-var selectedBD;
-
-//import
 window.Import(window._ROOTUTILS + "BDSql/bd.js");
 window.Import(window._ROOTUTILS + "Utils/Utils.js");
 window.Import("sw.js");
 
 
+$(function () {
+    const SQLSENTENCE = "sql sentence";
+    const LASTINDEX = "last bd selected";
+    const TABLE = ".table";
+    const CLASS_TABLE = 'showTable';
 
-window.onload = () => {
+    $('#loader').hide();
+
     if ('serviceWorker' in navigator) {
 
+        navigator.serviceWorker.register('/' + window._APP + '/sw.js');
 
-
-        navigator.serviceWorker.register('/SQLTest/sw.js');
         BD.Header = "BD_SQLTester";
-        document.getElementById(txtSqlId).value = localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "";
-        selectedBD = 0;
+        SetQuery(localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "");
 
-        BD.LoadAll().then((bds) => {
-            var promesa;
-
-
-            if (bds.length == 0) //si no hay nada guardado hago una nueva BD
-                promesa = NewBD();
-            else {
-                //si hay pues las añado
-                promesa = new Promise((okey, error) => {
-                    for (var i = 0; i < bds.length; i++)
-                        AddToList(bds[i]);
-                    okey();
-                });
-            }
-            promesa.then(() => {
-                //quito el loader :)
-                document.getElementById(loaderId).remove();
-                document.getElementById(contentBoxId).classList.remove(postLoaderClass);
-
-                //pongo la BD
-                selectedIndex = localStorage[LASTINDEX] != undefined ? parseInt(localStorage[LASTINDEX]) : 0;
-                UpdateSelectedBD();
+        $('#btnLoadBDTest').click(function () {
+            fetch('bdTest.sqlite').then((b)=>b.blob()).then((bdTest)=>{
+                var bd=new BD();
+                bd.Name="Test";
+                bd.Init=bd.Init.then((bd)=>bd.Import(bdTest));
+                AddBD(bd);
             });
+        });
+        $('#btnRun').click(function () {
+            window.BD.Execute(GetQuery()).then(SetResult);
+        });
+        //cargo las BDs guardadas
+        window.BDs = [];
+        BD.LoadAll().then((bds) => window.BDs = bds).then(() => {
+            //si no hay ninguna
+            var promise;
+            var index = localStorage[LASTINDEX] != undefined ? localStorage[LASTINDEX] : 0;
+            if (window.BDs.length == 0) {
+                promise = AddBD(new BD());
+            }
+            else {
+                promise = []
+                for (var i = 0; i < window.BDs.length; i++) {
+                    promise.push(AddBD(window.BDs[i]));
+                }
+                promise = Promise.all(promise);
+            }
+            return promise.then(() => SetBD(index));
 
-
-
-        }).catch(alert);
-    } else alert("Imposible work in this Browser!!");
-
-
-};
-window.onunload = () => {
-
-    SaveAll(false);
-}
-
-function UpdateSelectedBD() {
-    localStorage.setItem(LASTINDEX, selectedIndex);
-    selectedBD = dataBaseList[selectedIndex];
-    document.getElementById(hSelectedBDId).innerHTML = selectedBD.Name;
-
-}
-
-
-function ChangeText() {
-    const OCULTO = "oculto";
-    var sqlText = document.getElementById("sqlText");
-    var outPutText = document.getElementById("outPutText");
-    var hText = document.getElementById("hText");
-    var divBtns = document.getElementById("ALadoHText");
-
-    if (sqlText.classList.contains(OCULTO)) {
-        divBtns.classList.remove(OCULTO);
-        sqlText.classList.remove(OCULTO);
-
-
-        outPutText.classList.add(OCULTO);
-        hText.innerHTML = "SQL:";
-    } else {
-        divBtns.classList.add(OCULTO);
-        outPutText.classList.remove(OCULTO);
-
-        sqlText.classList.add(OCULTO);
-
-        hText.innerHTML = "OutPut:";
-    }
-}
-
-function DataBase() {
-    return selectedBD;
-}
-
-
-function NewBD() {
-    //crea una BD nueva y la añade a la lista
-    var bd = new BD();
-    return bd.Init.then(() => {
-        AddToList(bd);
-    });
-}
-
-function Clone() {
-    //clona la BD actual y la añade a la lista
-    return DataBase().Clone().then((db) => db.Save()).then(AddToList);
-}
-
-function AddToList(bd) {
-    //añade a la lista y al cm
-    var ulBD = document.createElement("ul");
-    ulBD.setAttribute("IdBD", bd.IdBD);
-    ulBD.innerHTML = bd.Name;
-    ulBD.onclick = (e) => {
-        var encontrado = false;
-        var idBD = e.target.getAttribute("IdBD");
-        for (var index = 0; index < dataBaseList.length && !encontrado; index++) {
-            encontrado = dataBaseList[index].IdBD == idBD;
-            if (encontrado)
-                selectedIndex = index;
-        }
-        if (encontrado)
-            UpdateSelectedBD();
-
-    }
-    document.getElementById(lstBDId).appendChild(ulBD);
-    ArrayUtils.Add(dataBaseList, bd);
-}
-
-function Delete() {
-    //elimino la BD actual
-    var lst = document.getElementById(lstBDId);
-    var db = DataBase();
-    var ulBD = null;
-    if (confirm("Are you sure?")) {
-        for (var i = 0; i < lst.children.length && ulBD == null; i++)
-            if (lst.children[i].getAttribute("IdBD") == bd.IdBD)
-                ulBD = lst.children[i];
-
-
-
-        if (ulBD != null) {
-            BD.DeleteFromCache(db)
-                .then(() => ArrayUtils.Remove(dataBaseList, db))
-                .then(() => {
-                    ulBD.remove();
-                    if (dataBaseList.length == 0) {
-                        NewBD().then(() => SaveAll());
-                    }
-                });
-        }
-    }
-}
-
-function Save() {
-    DataBase().Save().then((bd) => alert("saved successfully bd=" + bd.Name));
-}
-
-function UpLoad() {
-    //pide unos archivos miro si son SQLite y luego los añado
-
-}
-
-function Download() {
-    _Download(DataBase());
-}
-
-function _Download(bd) {
-
-    bd.Export().then((data) => {
-        DownloadFile(bd.Name + ".sqlite", data, "application/octet-stream");
-
-    });
-}
-
-function SaveAll(mostrarMensaje = true) {
-
-    BD.SaveAll(dataBaseList).then(() => {
-        var message = "all saved successfully ";
-        if (mostrarMensaje)
-            alert(message);
-        else console.log(message)
-
-    });
-}
-
-function DownloadAll() {
-    BD.BDsToZip(dataBaseList).then((dataZip) => {
-        DownloadFile("bds.zip", dataZip, "application/octet-stream");
-    });
-}
-
-function ExecuteSQL() {
-    var txtSQLSentence = document.getElementById(txtSqlId);
-    var txtResult = document.getElementById(txtResultId);
-    var selectedBD = DataBase();
-    localStorage.setItem(SQLSENTENCE, txtSQLSentence.value);
-    selectedBD.Execute(txtSQLSentence.value)
-        .then((result) => {
-            //  console.log(result);
-            txtResult.value = "BD='" + selectedBD.Name + "' result:'" + BD.ResultToString(result) + "'";
-
-        }).catch((error) => {
-            txtResult.value = "BD='" + selectedBD.Name + "' '" + error + "'";
         });
 
-}
 
-function Clear() {
-    document.getElementById(txtSqlId).value = "";
-    localStorage.remove(SQLSENTENCE);
-}
+
+
+    } else {
+        $('.container').hide();
+        alert('Navegador obsoleto');
+    }
+    function SetResult(result) {
+        var txtResult = BD.ResultToString(result);
+        //pongo 
+        $('.txtOut').val(txtResult);
+    }
+    function GetQuery() {
+        //obtengo el texto
+        var query = "";
+        $('.txtIn').map((t) => {
+            if (t.css('display') != 'none') {
+                /* your code goes here */
+                query=t.val();
+
+            }
+        });
+        return query;
+    }
+    function SetBD(index) {
+        var tablas;
+        var columnas;
+        //la BD actual es la que tenga el index
+        window.BD = window.BDs[index];
+        //cargo las tablas y sus columnas en un desplegable
+        $('.tablas').empty();
+
+        tablas = window.BD.GetTables();
+
+        for (var i = 0; i < tablas.length; i++) {
+            columnas = window.BD.GetColumns(tablas[i]);
+            AddTable(tablas[i]);
+            for (var j = 0; j < columnas.length; j++) {
+                AddTableColumn(tablas[i], columnas[j]);
+            }
+        }
+        //muestro el titulo
+        $('#lblNombreBD').innerText = window.BD.Name;
+        //guardo cual se ha puesto
+        localStorage[LASTINDEX] = index;
+    }
+    function AddTable(table) {
+
+        $('.tablas').append('<div><label id="lbl' + table + '">' + table + '</label><ul id="' + TABLE + table + '"></ul></div>');
+        $('#lbl' + table).click(function () {
+            var lstTabla = $('#' + TABLE + table);
+            if (lstTabla.hasClass(CLASS_TABLE)) {
+                lstTabla.removeClass(CLASS_TABLE);
+            } else {
+                lstTabla.addClass(CLASS_TABLE);
+            }
+        });
+
+    }
+    function AddTableColumn(table, column) {
+        $('#' + TABLE + table).append('<li>' + column + '</li>');
+    }
+    function AddBD(bd) {
+        return bd.Init.then(() => {
+            //lo añado a la lista
+        });
+    }
+
+    function SetQuery(query) {
+        //pongo el texto donde toca
+        $('.txtIn').val(query);
+    }
+});
