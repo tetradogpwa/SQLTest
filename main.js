@@ -50,17 +50,17 @@ $(function () {
         });
         //cargo las BDs guardadas
         window.BDs = [];
-        BD.LoadAll().then((bds) => window.BDs = bds).then(() => {
+        BD.LoadAll().then((bds) => {
             //si no hay ninguna
             var promise;
             var index = localStorage[LASTINDEX] != undefined ? localStorage[LASTINDEX] : 0;
-            if (window.BDs.length == 0) {
+            if (bds.length == 0) {
                 promise = AddBD(new BD());
             }
             else {
-                promise = []
-                for (var i = 0; i < window.BDs.length; i++) {
-                    promise.push(AddBD(window.BDs[i]));
+                promise = [];
+                for (var i = 0; i < bds.length; i++) {
+                    promise.push(AddBD(bds[i]));
                 }
                 promise = Promise.all(promise);
             }
@@ -116,9 +116,11 @@ $(function () {
     }
     function AddTable(table) {
 
-        $('.tablas').append('<div><label id="lbl' + table + '">' + table + '</label><ul id="' + TABLE + table + '"></ul></div>');
-        $('#lbl' + table).click(function () {
-            var lstTabla = $('#' + TABLE + table);
+        var idLbl='lbl'+table;
+        var lstTabla= TABLE + table;
+        $('.tablas').append('<div><label id="' + idLbl + '">' + table + '</label><ul id="' +lstTabla + '"></ul></div>');
+        $('#' + idLbl).click(function () {
+            var lstTabla = $('#' + lstTabla);
             if (lstTabla.hasClass(CLASS_TABLE)) {
                 lstTabla.removeClass(CLASS_TABLE);
             } else {
@@ -132,7 +134,7 @@ $(function () {
     }
     function AddBD(bd) {
         window.BDs.push(bd);
-        
+
         return bd.Init.then(() => {
             //lo añado a la lista
         });
