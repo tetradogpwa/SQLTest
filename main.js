@@ -131,6 +131,8 @@ $(function () {
         $('#' + TABLE + table).append('<li>' + column + '</li>');
     }
     function AddBD(bd) {
+        window.BDs.push(bd);
+        
         return bd.Init.then(() => {
             //lo añado a la lista
         });
