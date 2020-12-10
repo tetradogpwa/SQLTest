@@ -83,7 +83,7 @@ $(function () {
     function GetQuery() {
         //obtengo el texto
         var query = "";
-        $('.txtIn').map((t) => {
+        $('.txtIn').each((t) => {
             t=$(t);
             if (t.css('display') != 'none') {
                 /* your code goes here */
