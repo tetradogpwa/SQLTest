@@ -29,7 +29,7 @@ const SHELL = [
     ROOTUTILS + "BDSql/bd.js",
 
     ROOTUTILS + "Utils/Utils.js",
-    ROOTUTILS + "Utils/IndexedBDUtils.js",
+    ROOTUTILS + "Utils/IndexedDBUtils.js",
     ROOTUTILS + "Utils/NodeListUtils.js",
     ROOTUTILS + "Utils/SelectUtils.js",
     ROOTUTILS + "Utils/ArrayUtils.js",
