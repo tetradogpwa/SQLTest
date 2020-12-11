@@ -28,7 +28,7 @@ $(function () {
     const TABLE = ".table";
     const CLASS_TABLE = 'showTable';
 
-    $('#loader').hide();
+   
 
     if ('serviceWorker' in navigator) {
 
@@ -51,6 +51,7 @@ $(function () {
         //cargo las BDs guardadas
         window.BDs = [];
         BD.LoadAll().then((bds) => {
+            $('#loader').hide();
             //si no hay ninguna
             var promise;
             var index = localStorage[LASTINDEX] != undefined ? localStorage[LASTINDEX] : 0;
@@ -84,10 +85,9 @@ $(function () {
         //obtengo el texto
         var query = "";
         $('.txtIn').each((t) => {
-            t=$(t);
-            if (t.css('display') != 'none') {
+            if ($(t).css('display') != 'none') {
                 /* your code goes here */
-                query=t.val();
+                query=$(t).val();
 
             }
         });
