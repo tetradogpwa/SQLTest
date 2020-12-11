@@ -28,7 +28,7 @@ $(function () {
     const TABLE = ".table";
     const CLASS_TABLE = 'showTable';
 
-   
+
 
     if ('serviceWorker' in navigator) {
 
@@ -38,10 +38,10 @@ $(function () {
         SetQuery(localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "");
 
         $('#btnLoadBDTest').click(function () {
-            fetch('bdTest.sqlite').then((b)=>b.blob()).then((bdTest)=>{
-                var bd=new BD();
-                bd.Name="Test";
-                bd.Init=bd.Init.then((bd)=>bd.Import(bdTest));
+            fetch('bdTest.sqlite').then((b) => b.blob()).then((bdTest) => {
+                var bd = new BD();
+                bd.Name = "Test";
+                bd.Init = bd.Init.then((bd) => bd.Import(bdTest));
                 AddBD(bd);
             });
         });
@@ -87,7 +87,7 @@ $(function () {
         $('.txtIn').each((t) => {
             if ($(t).css('display') != 'none') {
                 /* your code goes here */
-                query=$(t).val();
+                query = $(t).val();
 
             }
         });
@@ -100,26 +100,27 @@ $(function () {
         window.BD = window.BDs[index];
         //cargo las tablas y sus columnas en un desplegable
         $('.tablas').empty();
+        return window.BD.Init.then(() => {
+            tablas = window.BD.GetTables();
 
-        tablas = window.BD.GetTables();
-
-        for (var i = 0; i < tablas.length; i++) {
-            columnas = window.BD.GetColumns(tablas[i]);
-            AddTable(tablas[i]);
-            for (var j = 0; j < columnas.length; j++) {
-                AddTableColumn(tablas[i], columnas[j]);
+            for (var i = 0; i < tablas.length; i++) {
+                columnas = window.BD.GetColumns(tablas[i]);
+                AddTable(tablas[i]);
+                for (var j = 0; j < columnas.length; j++) {
+                    AddTableColumn(tablas[i], columnas[j]);
+                }
             }
-        }
-        //muestro el titulo
-        $('#lblNombreBD').innerText = window.BD.Name;
-        //guardo cual se ha puesto
-        localStorage[LASTINDEX] = index;
+            //muestro el titulo
+            $('#lblNombreBD').innerText = window.BD.Name;
+            //guardo cual se ha puesto
+            localStorage[LASTINDEX] = index;
+        });
     }
     function AddTable(table) {
 
-        var idLbl='lbl'+table;
-        var lstTabla= TABLE + table;
-        $('.tablas').append('<div><label id="' + idLbl + '">' + table + '</label><ul id="' +lstTabla + '"></ul></div>');
+        var idLbl = 'lbl' + table;
+        var lstTabla = TABLE + table;
+        $('.tablas').append('<div><label id="' + idLbl + '">' + table + '</label><ul id="' + lstTabla + '"></ul></div>');
         $('#' + idLbl).click(function () {
             var lstTabla = $('#' + lstTabla);
             if (lstTabla.hasClass(CLASS_TABLE)) {
