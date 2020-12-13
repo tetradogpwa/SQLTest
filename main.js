@@ -96,13 +96,16 @@ $(function () {
         if (index < 0 || index >= window.BDs.length) {
             console.error('index out of range!', index);
         } else {
+            console.log('cargando tablas');
             //la BD actual es la que tenga el index
             window.BD = window.BDs[index];
+            console.log(window.BD);
             //cargo las tablas y sus columnas en un desplegable
             $('#tablas').empty();
             return window.BD.Init.then(() => {
                 return window.BD.GetTables().then(tablas => {
                     var promesasTablas = [];
+                    console.log('tablas',tablas);
                     for (var i = 0; i < tablas.length; i++) {
                         promesasTablas.push(window.BD.GetColumns(tablas[i]).then(columnas => {
                             AddTable(tablas[i]);
