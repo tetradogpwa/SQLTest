@@ -47,15 +47,15 @@ $(function () {
                 var bd = new BD();
                 bd.Name = "Test";
                 bd.Init = bd.Init.then((bd) => bd.Import(bdTest));
-                return AddBD(bd).then(()=>SetBD(bd));
+                return AddBD(bd).then(() => SetBD(window.BDs.length - 1));
             });
         });
         $('#btnRun').click(function () {
             window.BD.Execute(GetQuery()).then(SetResult);
         });
         $('#btnClear').click(function () {
-            $('#txtIn').val('');
-            $('#txtOut').val('');
+            $('#txtIn').text('');
+            $('#txtOut').text('');
         });
         //cargo las BDs guardadas
         window.BDs = [];
@@ -87,46 +87,53 @@ $(function () {
     function SetResult(result) {
         var txtResult = BD.ResultToString(result);
         //pongo 
-        $('#txtOut').val(txtResult);
+        $('#txtOut').text(txtResult);
     }
     function GetQuery() {
-        return $('#txtIn').val();
+        return $('#txtIn').text();
     }
     function SetBD(index) {
-        //la BD actual es la que tenga el index
-        window.BD = window.BDs[index];
-        //cargo las tablas y sus columnas en un desplegable
-        $('#tablas').empty();
-        return window.BD.Init.then(() => {
-            return window.BD.GetTables().then(tablas => {
-                var promesasTablas = [];
-                for (var i = 0; i < tablas.length; i++) {
-                    promesasTablas.push(window.BD.GetColumns(tablas[i]).then(columnas => {
-                        AddTable(tablas[i]);
+        if (index < 0 || index >= window.BDs.length) {
+            console.error('index out of range!', index);
+        } else {
+            //la BD actual es la que tenga el index
+            window.BD = window.BDs[index];
+            //cargo las tablas y sus columnas en un desplegable
+            $('#tablas').empty();
+            return window.BD.Init.then(() => {
+                return window.BD.GetTables().then(tablas => {
+                    var promesasTablas = [];
+                    for (var i = 0; i < tablas.length; i++) {
+                        promesasTablas.push(window.BD.GetColumns(tablas[i]).then(columnas => {
+                            AddTable(tablas[i]);
 
-                        for (var j = 0; j < columnas.length; j++) {
-                            AddTableColumn(tablas[i], columnas[j]);
-                        }
+                            for (var j = 0; j < columnas.length; j++) {
+                                AddTableColumn(tablas[i], columnas[j]);
+                            }
 
 
-                    }));
-                }
-                return Promise.all(promesasTablas).then(() => {
-                    //muestro el titulo
-                    $('#lblNombreBD').innerText = window.BD.Name;
-                    //guardo cual se ha puesto
-                    localStorage[LASTINDEX] = index;
+                        }));
+                    }
+                    return Promise.all(promesasTablas).then(() => {
+                        //muestro el titulo
+                        $('#lblNombreBD').innerText = window.BD.Name;
+                        //guardo cual se ha puesto
+                        localStorage[LASTINDEX] = index;
+                    });
+
                 });
-
             });
-        });
+        }
     }
     function AddTable(table) {
 
         var idLbl = 'lbl' + table;
         var lstTabla = TABLE + table;
+
         $('#tablas').append('<div><label id="' + idLbl + '">' + table + '</label><ul id="' + lstTabla + '"></ul></div>');
+
         $('#' + idLbl).click(function () {
+
             var lstTabla = $('#' + lstTabla);
             if (lstTabla.hasClass(CLASS_TABLE)) {
                 lstTabla.removeClass(CLASS_TABLE);
@@ -144,12 +151,12 @@ $(function () {
 
         return bd.Init.then(() => {
             //lo añado a la lista
-            return bd.GetDescTables().then((desc) => console.log(bd.Name, desc));
+            return bd.GetDescTables().then((desc) => console.log(bd.Name, BD.ResultToString(desc)));
         });
     }
 
     function SetQuery(query) {
         //pongo el texto donde toca
-        $('#txtIn').val(query);
+        $('#txtIn').text(query);
     }
 });
