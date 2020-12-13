@@ -39,7 +39,7 @@ $(function () {
 
         navigator.serviceWorker.register('/' + window._APP + '/sw.js');
 
-        BD.Header = "BD_SQLTester";
+        BD.Header = "BD_"+window._APP;
         SetQuery(localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "");
 
         $('#btnLoadBDTest').click(function () {
@@ -139,6 +139,7 @@ $(function () {
 
         return bd.Init.then(() => {
             //lo añado a la lista
+            console.log(bd.Name,bd.GetDescTables());
         });
     }
 
