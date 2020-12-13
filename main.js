@@ -47,7 +47,7 @@ $(function () {
                 var bd = new BD();
                 bd.Name = "Test";
                 bd.Init = bd.Init.then((bd) => bd.Import(bdTest));
-                AddBD(bd);
+                AddBD(bd).then(()=>SetBD(bd));
             });
         });
         $('#btnRun').click(function () {
