@@ -31,15 +31,15 @@ $(function () {
     const SQLSENTENCE = "sql sentence";
     const LASTINDEX = "last bd selected";
     const CLASS_TABLE = 'showTable';
-    const URL_BD_TEST="bdTest.sqlite";
-    const TABLE="table";
+    const URL_BD_TEST = "bdTest.sqlite";
+    const TABLE = "table";
 
 
     if ('serviceWorker' in navigator) {
 
         navigator.serviceWorker.register('/' + window._APP + '/sw.js');
 
-        BD.Header = "BD_"+window._APP;
+        BD.Header = "BD_" + window._APP;
         SetQuery(localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "");
 
         $('#btnLoadBDTest').click(function () {
@@ -60,7 +60,6 @@ $(function () {
         //cargo las BDs guardadas
         window.BDs = [];
         BD.LoadAll().then((bds) => {
-            $('#loader').hide();
             //si no hay ninguna
             var promise;
             var index = localStorage[LASTINDEX] != undefined ? localStorage[LASTINDEX] : 0;
@@ -76,7 +75,7 @@ $(function () {
             }
             return promise.then(() => SetBD(index));
 
-        });
+        }).then(() => $('#loader').hide());
 
 
 
@@ -94,26 +93,32 @@ $(function () {
         return $('#txtIn').val();
     }
     function SetBD(index) {
-        var tablas;
-        var columnas;
         //la BD actual es la que tenga el index
         window.BD = window.BDs[index];
         //cargo las tablas y sus columnas en un desplegable
         $('#tablas').empty();
         return window.BD.Init.then(() => {
-            tablas = window.BD.GetTables();
+            return window.BD.GetTables().then(tablas => {
+                var promesasTablas = [];
+                for (var i = 0; i < tablas.length; i++) {
+                    promesasTablas.push(window.BD.GetColumns(tablas[i]).then(columnas => {
+                        AddTable(tablas[i]);
 
-            for (var i = 0; i < tablas.length; i++) {
-                columnas = window.BD.GetColumns(tablas[i]);
-                AddTable(tablas[i]);
-                for (var j = 0; j < columnas.length; j++) {
-                    AddTableColumn(tablas[i], columnas[j]);
+                        for (var j = 0; j < columnas.length; j++) {
+                            AddTableColumn(tablas[i], columnas[j]);
+                        }
+
+
+                    }));
                 }
-            }
-            //muestro el titulo
-            $('#lblNombreBD').innerText = window.BD.Name;
-            //guardo cual se ha puesto
-            localStorage[LASTINDEX] = index;
+                return Promise.all(promesasTablas).then(() => {
+                    //muestro el titulo
+                    $('#lblNombreBD').innerText = window.BD.Name;
+                    //guardo cual se ha puesto
+                    localStorage[LASTINDEX] = index;
+                });
+
+            });
         });
     }
     function AddTable(table) {
@@ -139,7 +144,7 @@ $(function () {
 
         return bd.Init.then(() => {
             //lo añado a la lista
-            console.log(bd.Name,bd.GetDescTables());
+            bd.GetDescTables().then((desc) => console.log(bd.Name, desc));
         });
     }
 
