@@ -47,7 +47,7 @@ $(function () {
                 var bd = new BD();
                 bd.Name = "Test";
                 bd.Init = bd.Init.then((bd) => bd.Import(bdTest));
-                AddBD(bd).then(()=>SetBD(bd));
+                return AddBD(bd).then(()=>SetBD(bd));
             });
         });
         $('#btnRun').click(function () {
@@ -144,7 +144,7 @@ $(function () {
 
         return bd.Init.then(() => {
             //lo añado a la lista
-            bd.GetDescTables().then((desc) => console.log(bd.Name, desc));
+            return bd.GetDescTables().then((desc) => console.log(bd.Name, desc));
         });
     }
 
