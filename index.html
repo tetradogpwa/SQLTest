@@ -32,24 +32,20 @@
             <!--Menu-->
             <input id="btnLoadBDTest" type="button" value="Load BD Test" />
             <input id="btnRun" type="button" value="RUN" />
+            <input id="btnClear" type="button" value="Clear" />
         </div>
         <div id="loader" class="row"></div>
 
         <label id="lblNombreBD" class="row"></label>
 
-        <div class="row .d-none .d-sm-block">
+        <div class="row">
             <!--los dos-->
-            <div class="col-2 tablas"></div>
-            <textarea  class="col-5 txtIn" rows="50"></textarea>
-            <textarea  class="col-5 txtOut" readonly="true" rows="50"></textarea>
+            <div      id="tablas" class="col-12 col-sm-2"></div>
+            <textarea id="txtIn " class="col-12 col-sm-5" rows="50"></textarea>
+            <textarea id="txtOut" class="col-12 col-sm-5" rows="50" readonly="true" ></textarea>
         </div>
        
-        <div class="row .d-block .d-sm-none">
-            <!--Dos en una-->
-            <div class="col-12 tablas"></div>
-            <textarea id="txtQuery" class="txtIn" readonly="false" rows="50" ></textarea>
 
-        </div>
     </div>
 
 </body>

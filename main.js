@@ -3,15 +3,20 @@ window._APP = "SQLTest";
 window._ROOTUTILS = "https://" + window._USER + ".github.io/Utils/";
 window.Import = (url) => {
 
-    var scriptNode = document.createElement("script");
-    scriptNode.setAttribute("language", "JavaScript");
-    scriptNode.setAttribute("type", "text/JavaScript");
-    scriptNode.setAttribute("src", url);
+    var scriptNode;
+
     if (!window._MapImportScript)
         window._MapImportScript = new Map();
     //source:http://www.forosdelweb.com/f13/importar-archivo-js-dentro-javascript-387358/
     if (!window._MapImportScript.has(url)) {
+
+        scriptNode = document.createElement("script");
+        scriptNode.setAttribute("language", "JavaScript");
+        scriptNode.setAttribute("type", "text/JavaScript");
+        scriptNode.setAttribute("src", url);
+
         document.write(scriptNode.outerHTML);
+
         window._MapImportScript.set(url, url);
     }
 
@@ -25,9 +30,9 @@ window.Import("sw.js");
 $(function () {
     const SQLSENTENCE = "sql sentence";
     const LASTINDEX = "last bd selected";
-    const TABLE = ".table";
     const CLASS_TABLE = 'showTable';
-
+    const URL_BD_TEST="bdTest.sqlite";
+    const TABLE="table";
 
 
     if ('serviceWorker' in navigator) {
@@ -38,7 +43,7 @@ $(function () {
         SetQuery(localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "");
 
         $('#btnLoadBDTest').click(function () {
-            fetch('bdTest.sqlite').then((b) => b.blob()).then((bdTest) => {
+            fetch(URL_BD_TEST).then((b) => b.blob()).then((bdTest) => {
                 var bd = new BD();
                 bd.Name = "Test";
                 bd.Init = bd.Init.then((bd) => bd.Import(bdTest));
@@ -47,6 +52,10 @@ $(function () {
         });
         $('#btnRun').click(function () {
             window.BD.Execute(GetQuery()).then(SetResult);
+        });
+        $('#btnClear').click(function () {
+            $('#txtIn').val('');
+            $('#txtOut').val('');
         });
         //cargo las BDs guardadas
         window.BDs = [];
@@ -79,19 +88,10 @@ $(function () {
     function SetResult(result) {
         var txtResult = BD.ResultToString(result);
         //pongo 
-        $('.txtOut').val(txtResult);
+        $('#txtOut').val(txtResult);
     }
     function GetQuery() {
-        //obtengo el texto
-        var query = "";
-        $('.txtIn').each((t) => {
-            if ($(t).css('display') != 'none') {
-                /* your code goes here */
-                query = $(t).val();
-
-            }
-        });
-        return query;
+        return $('#txtIn').val();
     }
     function SetBD(index) {
         var tablas;
@@ -99,7 +99,7 @@ $(function () {
         //la BD actual es la que tenga el index
         window.BD = window.BDs[index];
         //cargo las tablas y sus columnas en un desplegable
-        $('.tablas').empty();
+        $('#tablas').empty();
         return window.BD.Init.then(() => {
             tablas = window.BD.GetTables();
 
@@ -120,7 +120,7 @@ $(function () {
 
         var idLbl = 'lbl' + table;
         var lstTabla = TABLE + table;
-        $('.tablas').append('<div><label id="' + idLbl + '">' + table + '</label><ul id="' + lstTabla + '"></ul></div>');
+        $('#tablas').append('<div><label id="' + idLbl + '">' + table + '</label><ul id="' + lstTabla + '"></ul></div>');
         $('#' + idLbl).click(function () {
             var lstTabla = $('#' + lstTabla);
             if (lstTabla.hasClass(CLASS_TABLE)) {
@@ -144,6 +144,6 @@ $(function () {
 
     function SetQuery(query) {
         //pongo el texto donde toca
-        $('.txtIn').val(query);
+        $('#txtIn').val(query);
     }
 });
