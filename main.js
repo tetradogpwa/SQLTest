@@ -43,10 +43,7 @@ $(function () {
         SetQuery(localStorage[SQLSENTENCE] != undefined ? localStorage[SQLSENTENCE] : "");
 
         $('#btnLoadBDTest').click(function () {
-            fetch(URL_BD_TEST).then((b) => b.blob()).then((bdTest) => {
-                var bd = new BD();
-                bd.Name = "Test";
-                bd.Init = bd.Init.then((bd) => bd.Import(bdTest));
+             BD.FromUrl('Test',URL_BD_TEST).then((bd)=> {
                 return AddBD(bd).then(() => SetBD(window.BDs.length - 1));
             });
         });
@@ -154,7 +151,7 @@ $(function () {
 
         return bd.Init.then(() => {
             //lo añado a la lista
-            return bd.GetDescTables().then((desc) => console.log(bd.Name, BD.ResultToString(desc)));
+            return bd.GetDescTables().then((desc) => console.log(bd.Name,desc));
         });
     }
 
