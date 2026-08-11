@@ -4,6 +4,12 @@ Aplicación web progresiva (PWA) para aprender SQL en español, con SQLite ejecu
 
 **Stack:** Vite 8 + React 19 + TypeScript 6 + `wa-sqlite` 1.0 + CodeMirror 6 + Dexie 4 + Comlink 4 + `vite-plugin-pwa`.
 
+[![CI](https://github.com/tetradogpwa/SQLTest/actions/workflows/ci.yml/badge.svg)](https://github.com/tetradogpwa/SQLTest/actions/workflows/ci.yml)
+[![Coverage](https://github.com/tetradogpwa/SQLTest/actions/workflows/pr-coverage.yml/badge.svg)](https://github.com/tetradogpwa/SQLTest/actions/workflows/pr-coverage.yml)
+
+> Reemplaza `<owner>` por el nombre del repo si haces fork. Los
+> badges apuntan a `tetradogpwa/SQLTest` por defecto.
+
 ## Quick start
 
 ```bash
@@ -18,10 +24,27 @@ npm run dev         # mismo que npm start, alias
 npm run build       # build de producción a ./dist
 npm run preview     # sirve el build localmente
 npm run typecheck   # tsc --noEmit
-npm run test        # vitest run (suite completa)
+npm run test        # vitest run (suite completa, ~30s)
 npm run test:watch  # vitest en modo watch
+npm run test:ui     # vitest --ui
+npm run test:coverage # vitest run --coverage (HTML + lcov)
 npm run lint        # oxlint
 ```
+
+## Pipeline de CI
+
+Cada push a `main` y cada PR ejecuta:
+
+1. **lint** — `oxlint` (sin config, cero overhead).
+2. **typecheck** — `tsc --noEmit -p tsconfig.app.json`.
+3. **test** — `vitest run` con happy-dom + `pool: 'forks'`. 657 tests.
+4. **coverage** — `vitest run --coverage` (v8) — sube `coverage/`
+   como artefacto y postea un resumen en el PR.
+5. **build** — `vite build` con el plugin PWA; sube `dist/` como
+   artefacto para inspección.
+
+Más detalles en [`CI-CD-REPORT.md`](./CI-CD-REPORT.md) y
+[`.github/workflows/`](./.github/workflows/).
 
 ## Características
 

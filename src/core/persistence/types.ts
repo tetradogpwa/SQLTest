@@ -69,6 +69,12 @@ export interface Setting {
 export interface Settings {
   theme: 'light' | 'dark' | 'auto'
   fontSize: 'sm' | 'md' | 'lg'
+  /** Number of spaces a tab inserts in the editor. */
+  tabSize: 2 | 4
+  /** Whether the editor wraps long lines or scrolls horizontally. */
+  wordWrap: boolean
+  /** UI locale. Drives the `useTranslation` hook. */
+  locale: 'es' | 'ca' | 'en'
   sqlDialect: 'sqlite'
   reducedMotion: boolean
   autoSaveDrafts: boolean

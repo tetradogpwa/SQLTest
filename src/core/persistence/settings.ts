@@ -48,6 +48,9 @@ import type { Settings } from './types'
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'auto',
   fontSize: 'md',
+  tabSize: 2,
+  wordWrap: false,
+  locale: 'es',
   sqlDialect: 'sqlite',
   reducedMotion: false,
   autoSaveDrafts: true,

@@ -58,6 +58,7 @@ import {
   foldKeymap,
   syntaxHighlighting,
   defaultHighlightStyle,
+  indentUnit,
 } from '@codemirror/language'
 import { searchKeymap, highlightSelectionMatches, search } from '@codemirror/search'
 import {
@@ -87,6 +88,10 @@ export interface SqlEditorProps {
   placeholder?: string
   /** Pixel font size for the editor surface. */
   fontSize?: number
+  /** Spaces a tab inserts. Defaults to `2`. */
+  tabSize?: 2 | 4
+  /** Wrap long lines instead of horizontal scrolling. Defaults to `false`. */
+  wordWrap?: boolean
   /** Render the dark theme. Defaults to `false` (light). */
   dark?: boolean
   /** CSS height of the editor. */
@@ -164,6 +169,8 @@ export function SqlEditor({
   readOnly = false,
   placeholder,
   fontSize = 14,
+  tabSize = 2,
+  wordWrap = false,
   dark = false,
   height = '320px',
   ariaLabel = 'Editor SQL',
@@ -227,7 +234,11 @@ export function SqlEditor({
         defaultKeymap: true,
       }),
       keymap.of(keymaps as Parameters<typeof keymap.of>[0] as ReadonlyArray<import('@codemirror/view').KeyBinding>),
-      EditorView.lineWrapping,
+      indentUnit.of(' '.repeat(tabSize)),
+      // Make the contenteditable `role="textbox"` element findable by
+      // screen readers: the wrapper's `aria-label` is not propagated
+      // to the inner element by CodeMirror 6.
+      CMEditorView.contentAttributes.of({ 'aria-label': ariaLabel }),
       baseLightTheme,
       EditorView.theme(
         {
@@ -237,11 +248,14 @@ export function SqlEditor({
       ),
     ]
 
+    if (wordWrap) {
+      list.push(EditorView.lineWrapping)
+    }
     if (dark) {
       list.push(oneDark)
     }
     return list
-  }, [schemaContext, onExecute, runSelectionOnly, value, fontSize, dark])
+  }, [schemaContext, onExecute, runSelectionOnly, value, fontSize, tabSize, wordWrap, dark])
 
   // Bubble the live `EditorView` up via `onReady`.
   useEffect(() => {

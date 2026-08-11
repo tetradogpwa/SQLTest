@@ -1,0 +1,56 @@
+/*
+ * DbSelector — a single-row pill that combines an icon, a label and a
+ * `<select>`. Designed for the playground toolbar: the user picks
+ * which database to play with.
+ *
+ * Token rules:
+ *   - no hard-coded colors; reads from the design tokens.
+ *   - the select uses the same focus ring as the rest of the app.
+ *   - the wrapper is `display: inline-flex` so it nests cleanly inside
+ *     the existing toolbar.
+ */
+
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.wrapper:focus-within {
+  border-color: var(--color-focus-ring);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.select {
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.select option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+}

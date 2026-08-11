@@ -301,6 +301,33 @@ export class ImportExportManager {
     return { dbId, sizeBytes }
   }
 
+  /**
+   * Create a brand-new empty database under the user root. The file is
+   * created via `DatabaseManager.open()` (which delegates to
+   * `sqlite3.open_v2`, whose default flags create the file if missing)
+   * and registered with this manager so `listUserDatabases` reports
+   * it. The provenance is `created`.
+   */
+  async create(targetName: string): Promise<{ dbId: number; sizeBytes: number }> {
+    const sanitized = sanitizeName(targetName)
+    const finalFilename = await this.findFreeFilename(sanitized)
+    const finalName = filenameToName(finalFilename)
+    const dbId = this.allocateDbId()
+    try {
+      await this.dbs.open(dbId, finalFilename, 'readwrite')
+    } catch (e) {
+      throw new ImportError(finalFilename, e)
+    }
+    this.owned.set(dbId, {
+      filename: finalFilename,
+      name: finalName,
+      createdAt: this.now(),
+    })
+    this.schema?.invalidate(dbId)
+    const sizeBytes = await this.io.size(finalFilename).catch(() => 0)
+    return { dbId, sizeBytes }
+  }
+
   /* ------------------------------------------------------------------ *
    *  Internals                                                         *
    * ------------------------------------------------------------------ */

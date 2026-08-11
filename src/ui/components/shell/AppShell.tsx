@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { TopBar } from './TopBar'
 import { Sidebar } from './Sidebar'
+import { WorkerErrorBanner } from './WorkerErrorBanner'
 import { useTranslation } from '../../../core/i18n/i18n'
 import styles from './shell.module.css'
 
@@ -43,6 +44,7 @@ export function AppShell({ children }: AppShellProps): React.ReactNode {
     <div className={styles.app}>
       <TopBar
         onToggleSidebar={() => setMobileOpen((v) => !v)}
+        sidebarOpen={mobileOpen}
         sidebarToggleLabel={t('nav.toggleSidebar')}
       />
 
@@ -60,6 +62,7 @@ export function AppShell({ children }: AppShellProps): React.ReactNode {
           {children}
         </main>
       </div>
+      <WorkerErrorBanner />
     </div>
   )
 }

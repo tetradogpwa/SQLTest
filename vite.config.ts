@@ -106,4 +106,12 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
   },
+  define: {
+    // Build-time constants surfaced to the UI. The version comes from
+    // package.json; the build id is a per-build timestamp so the
+    // Settings → About panel can show something more useful than
+    // "0.0.0".
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.0.0'),
+    __APP_BUILD_ID__: JSON.stringify(new Date().toISOString()),
+  },
 })

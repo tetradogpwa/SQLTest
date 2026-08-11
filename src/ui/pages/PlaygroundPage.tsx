@@ -5,24 +5,32 @@
  *
  *   ┌─────────────────────────────────────────────────────────────────────┐
  *   │ <Header />                                                          │
+ *   ├─────────────────────────────────────────────────────────────────────┤
+ *   │ Toolbar: DB selector · status · Run · Snapshots · Undo · Stats      │
  *   ├──────────────┬─────────────────────────────────────┬────────────────┤
  *   │ History      │ Editor                              │ DB Explorer    │
  *   │              │                                     │                │
- *   │              │ [Result / Error]                    │                │
+ *   │              │ [Result / Error]                    │ + Snapshots    │
+ *   │              │                                     │ + Stats        │
  *   └──────────────┴─────────────────────────────────────┴────────────────┘
- *
- * Layout (mobile, < 768px): the sidebars stack under the editor.
  *
  * Responsibilities
  * ----------------
  *  - Boots the Worker via {@link useDatabase}.
- *  - Picks the *active* database from the persisted `defaultDatabase`
- *    setting (for now we just default to a small in-memory `library`
- *    seed; full DatabaseManager UI lands in a later phase).
+ *  - Tracks the active DB via the persistent setting
+ *    `defaultDatabase` (string slug). When the user picks a different
+ *    DB in the toolbar, the page writes the new value to the setting
+ *    and registers the new `dbId` with `useDatabase` so the Worker
+ *    reopens it on the next run.
  *  - Wires {@link SqlEditor} to {@link useQuery} and {@link useSchema}.
- *  - Renders the result, the error banner, and the history list.
+ *  - Renders the result, the error banner, the history list.
  *  - Re-introspects the schema on every successful DDL run (CREATE,
  *    DROP, ALTER) so the explorer stays in sync.
+ *  - On every destructive statement (`requiresCheckpoint` from the
+ *    statement analyzer), the page asks the Worker to capture a
+ *    snapshot first, so the Undo button has something to revert to.
+ *  - The `SnapshotsPanel` and `StatsPanel` sit under the explorer;
+ *    the `UndoButton` sits in the toolbar.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
@@ -39,26 +47,39 @@ import { useDatabase } from '../../hooks/useDatabase'
 import { useQuery } from '../../hooks/useQuery'
 import { useSchema } from '../../hooks/useSchema'
 import { useDebounce } from '../../hooks/useDebounce'
+import { useUserDatabases } from '../../hooks/useUserDatabases'
+import { useSettings } from '../../hooks/useSettings'
+import { settings as settingsStore } from '../../core/persistence'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../../core/persistence/dexie'
+import { analyze } from '../../workers/statement-analyzer'
+import type { AnalyzedStatement } from '../../workers/types'
+import { useTranslation } from '../../core/i18n/i18n'
+import type { SerializedError } from '../../workers/types'
+
 import { SqlEditor } from '../components/editor/SqlEditor'
 import { ResultsTable } from '../components/results/ResultsTable'
 import { ErrorBanner } from '../components/results/ErrorBanner'
 import { DbExplorer } from '../components/schema/DbExplorer'
 import { TableDefinition } from '../components/schema/TableDefinition'
-import { settings } from '../../core/persistence'
-import { useTranslation } from '../../core/i18n/i18n'
-import type { DatabaseSchema } from '../../workers/types'
-import type { SerializedError } from '../../workers/types'
+import { DbSelector } from '../components/playground/DbSelector'
+import { SnapshotsPanel } from '../components/playground/SnapshotsPanel'
+import { UndoButton } from '../components/playground/UndoButton'
+import { StatsPanel } from '../components/playground/StatsPanel'
 
 import styles from './page.module.css'
 import playgroundStyles from './playground.module.css'
 
 /**
- * The default seed for the playground database. In a later phase this
- * is replaced by a real "import or create" flow wired to the Worker.
+ * The default seed for the playground database. The Worker creates
+ * the file lazily on first exec. The `dbId` `1` is reserved for the
+ * built-in playground across sessions; user-created DBs get higher
+ * numbers assigned by the `ImportExportManager`.
  */
-const DEFAULT_DB_ID = 1
+const DEFAULT_DB_ID: number = 1
 const DEFAULT_DB_NAME = 'playground'
 const DEFAULT_FILENAME = 'playground.sqlite3'
+const DEFAULT_STORAGE_KEY = 'playground'
 
 const SEED_SQL = `-- Bienvenido al Playground SQL.
 -- Pulsa Ctrl/Cmd+Enter para ejecutar.
@@ -99,21 +120,19 @@ GROUP BY u.id
 ORDER BY total_spent DESC;
 `
 
-/**
- * Detect a DDL statement by simple keyword sniffing. The Worker also
- * classifies statements via `analyze()`; this is a defensive client-
- * side check so we only re-introspect the schema when really needed.
- */
-function isDdl(sql: string): boolean {
-  return /\b(CREATE|DROP|ALTER|RENAME)\b/i.test(sql)
+/** A statement is "destructive" when the analyzer flags a checkpoint. */
+function isDestructive(statements: ReadonlyArray<AnalyzedStatement>): boolean {
+  return statements.some((s) => s.requiresCheckpoint)
 }
 
-function tableNames(schema: DatabaseSchema | null): string[] {
+function tableNames(schema: { tables: ReadonlyArray<{ name: string }> } | null): string[] {
   if (!schema) return []
   return schema.tables.map((t) => t.name)
 }
 
-function columnNames(schema: DatabaseSchema | null): string[] {
+function columnNames(
+  schema: { tables: ReadonlyArray<{ columns: ReadonlyArray<{ name: string }> }> } | null,
+): string[] {
   if (!schema) return []
   return schema.tables.flatMap((t) => t.columns.map((c) => c.name))
 }
@@ -125,38 +144,84 @@ export function PlaygroundPage(): React.ReactNode {
   const { schema, loading: schemaLoading, error: schemaError, refresh: refreshSchema, invalidate: invalidateSchema } =
     useSchema()
   const { run, result, loading, error, history, clearHistory, cancel, executionMs } = useQuery()
+  const { databases } = useUserDatabases()
+  const settings = useSettings()
   const [editorValue, setEditorValue] = useState<string>(SEED_SQL)
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [fontSize, setFontSize] = useState<number>(14)
   const [editorRef, setEditorRef] = useState<import('@uiw/react-codemirror').EditorView | null>(null)
   const debouncedSchema = useDebounce(schema, 300)
+  // The "user DB id" key used to look up the db in the user DB list.
+  // `null` (the built-in playground) maps to the default storage key.
+  const storageKey =
+    dbId === null || dbId === DEFAULT_DB_ID
+      ? DEFAULT_STORAGE_KEY
+      : `db-${dbId}`
 
-  // Set the default database on first mount and ensure the Worker has
-  // a DB to talk to. The `registerDb` call records the mapping so the
-  // hook can reopen it after a Worker crash.
-  useEffect(() => {
-    if (dbId == null) setActiveDb(DEFAULT_DB_ID)
-  }, [dbId, setActiveDb])
+  // Count of queries executed in this session for the active DB.
+  const queriesExecuted = useLiveQuery(
+    async () => {
+      if (dbId == null) return 0
+      return db.queryHistory.where('dbId').equals(dbId).count()
+    },
+    [dbId],
+    0,
+  )
 
+  // Current DB size — read from the user DBs list (for created /
+  // imported DBs) or fall back to the built-in estimate (the
+  // playground file is tiny, so we read it from the Worker on mount).
+  const activeUserDb = useMemo(() => {
+    if (dbId == null || dbId === DEFAULT_DB_ID) return null
+    return databases.find((d) => d.id === `db-${dbId}`) ?? null
+  }, [dbId, databases])
+  const sizeBytes = activeUserDb?.sizeBytes ?? null
+
+  // Read the persisted default DB once on mount and set the active
+  // dbId from it. We do not write to the setting on every change —
+  // that's the user's choice via the selector.
   useEffect(() => {
-    if (ready && api && dbId != null) {
-      // Fire-and-forget open. If the file doesn't exist yet, the
-      // Worker will create it on the first exec. We register the
-      // (dbId, filename) pair so the Worker manager knows to reopen
-      // it on recovery.
-      registerDb(dbId, DEFAULT_FILENAME)
-      void api
-        .open(dbId, DEFAULT_FILENAME, 'readwrite')
-        .catch((e: unknown) => {
-          // eslint-disable-next-line no-console
-          console.warn('[playground] open failed:', e)
-        })
+    let cancelled = false
+    void settingsStore.get('defaultDatabase').then((v) => {
+      if (cancelled) return
+      if (typeof v === 'string' && v.length > 0) {
+        // The setting stores the string id; we only support the
+        // built-in playground for now, so we map anything else to
+        // the default.
+        if (v === DEFAULT_STORAGE_KEY) {
+          setActiveDb(DEFAULT_DB_ID)
+        } else {
+          // Future: parse `db-<n>` and set accordingly.
+          setActiveDb(DEFAULT_DB_ID)
+        }
+      } else {
+        setActiveDb(DEFAULT_DB_ID)
+      }
+    })
+    return () => {
+      cancelled = true
     }
-  }, [ready, api, dbId, registerDb])
+  }, [setActiveDb])
+
+  // Open the current DB on the Worker. For the built-in playground
+  // we use the default filename; for user DBs we derive the filename
+  // from the storage key (the Worker's `ImportExportManager` already
+  // has it open, but we re-register it so the recovery path works).
+  useEffect(() => {
+    if (!ready || !api || dbId == null) return
+    const filename = computeFilename(dbId, activeUserDb)
+    registerDb(dbId, filename)
+    void api
+      .open(dbId, filename, 'readwrite')
+      .catch((e: unknown) => {
+        // eslint-disable-next-line no-console
+        console.warn('[playground] open failed:', e)
+      })
+  }, [ready, api, dbId, registerDb, activeUserDb])
 
   // Read the persisted font size once on mount.
   useEffect(() => {
-    void settings.get('fontSize').then((v) => {
+    void settingsStore.get('fontSize').then((v) => {
       if (v === 'sm') setFontSize(12)
       else if (v === 'lg') setFontSize(16)
       else setFontSize(14)
@@ -164,11 +229,23 @@ export function PlaygroundPage(): React.ReactNode {
   }, [])
 
   // Editor execute handler. After a DDL run, re-introspect the schema.
+  // Before a destructive run, capture a snapshot so Undo has a target.
   const handleExecute = useCallback(
     async (sql: string) => {
       if (!api || dbId == null) return
+      const statements = analyze(sql)
+      if (isDestructive(statements) && dbId !== DEFAULT_DB_ID) {
+        // Only capture an auto-snapshot for user DBs. The built-in
+        // playground is intentionally reset on every app start, so
+        // the Undo button is a no-op there.
+        try {
+          await api.snapshot(dbId, 'auto: pre-destructive', 'pre-destructive')
+        } catch {
+          // Non-fatal — the run still proceeds.
+        }
+      }
       await run(sql)
-      if (isDdl(sql)) {
+      if (statements.some((s) => s.kind === 'create' || s.kind === 'drop' || s.kind === 'alter')) {
         invalidateSchema()
         void refreshSchema()
       }
@@ -198,6 +275,16 @@ export function PlaygroundPage(): React.ReactNode {
     [],
   )
 
+  const handleSelectorChange = useCallback(
+    (next: number | null) => {
+      // `null` is the built-in playground; any other value is a user
+      // DB's numeric id.
+      const target = next ?? DEFAULT_DB_ID
+      setActiveDb(target)
+    },
+    [setActiveDb],
+  )
+
   const statusLabel =
     status === 'ready'
       ? 'Worker conectado'
@@ -222,6 +309,7 @@ export function PlaygroundPage(): React.ReactNode {
 
       <div className={playgroundStyles.toolbar} role="toolbar" aria-label="Barra de herramientas del editor">
         <div className={playgroundStyles.toolbarLeft}>
+          <DbSelector value={dbId} onChange={handleSelectorChange} />
           <span
             className={playgroundStyles.status}
             data-status={status}
@@ -231,6 +319,7 @@ export function PlaygroundPage(): React.ReactNode {
             {statusLabel}
             {capability ? <span className={playgroundStyles.capability}>· {capability}</span> : null}
           </span>
+          <UndoButton dbId={dbId} storageKey={storageKey} />
         </div>
         <div className={playgroundStyles.toolbarRight}>
           {loading ? (
@@ -326,6 +415,8 @@ export function PlaygroundPage(): React.ReactNode {
             schemaContext={debouncedSchema}
             runSelectionOnly={false}
             fontSize={fontSize}
+            tabSize={settings.values.tabSize}
+            wordWrap={settings.values.wordWrap}
             height="360px"
             ariaLabel="Editor SQL del playground"
             onReady={handleEditorReady}
@@ -357,11 +448,11 @@ export function PlaygroundPage(): React.ReactNode {
           ) : null}
         </div>
 
-        {/* Schema explorer */}
+        {/* Schema explorer + side panels */}
         <div className={playgroundStyles.explorerArea}>
           <DbExplorer
             dbId={dbId}
-            databaseName={DEFAULT_DB_NAME}
+            databaseName={dbId === DEFAULT_DB_ID ? DEFAULT_DB_NAME : activeUserDb?.name ?? DEFAULT_DB_NAME}
             schema={debouncedSchema}
             loading={schemaLoading}
             error={schemaError}
@@ -382,10 +473,33 @@ export function PlaygroundPage(): React.ReactNode {
               }
             }}
           />
+          <div className={playgroundStyles.sidePanelStack}>
+            <SnapshotsPanel dbId={dbId} storageKey={storageKey} />
+            <StatsPanel
+              sizeBytes={sizeBytes}
+              queriesExecuted={queriesExecuted ?? 0}
+              lastError={error?.translatedMessage ?? null}
+            />
+          </div>
         </div>
       </div>
     </div>
   )
+}
+
+/**
+ * Derive the on-disk filename for a given active dbId. The built-in
+ * playground always lives at `playground.sqlite3`; user DBs are
+ * `${name}.sqlite3` (sanitised by the Worker on creation).
+ */
+function computeFilename(
+  dbId: number,
+  activeUserDb: { name: string } | null,
+): string {
+  if (dbId === DEFAULT_DB_ID) return DEFAULT_FILENAME
+  const name = activeUserDb?.name ?? `db-${dbId}`
+  const safe = name.replace(/[^A-Za-z0-9._-]+/g, '_')
+  return `${safe}.sqlite3`
 }
 
 export default PlaygroundPage

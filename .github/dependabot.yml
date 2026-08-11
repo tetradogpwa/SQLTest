@@ -1,0 +1,60 @@
+# Dependabot configuration.
+#
+# We let Dependabot open weekly PRs for:
+#   - npm production dependencies,
+#   - npm dev dependencies,
+#   - GitHub Actions (kept up to date with the action versions we
+#     use in `.github/workflows/`).
+#
+# Each PR runs the full CI pipeline; if the test/build/lint gate
+# breaks the update is automatically blocked, so we can safely
+# auto-merge trivial patches in the future by adding
+# `gh-actions[bot]` to the trusted reviewers list (Phase 14
+# follow-up).
+
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'Europe/Madrid'
+    open-pull-requests-limit: 5
+    # Group related packages so we don't drown in single-dep PRs.
+    groups:
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react*'
+      codemirror:
+        patterns:
+          - '@codemirror/*'
+          - '@lezer/*'
+          - '@uiw/react-codemirror'
+      testing:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'happy-dom'
+          - 'fake-indexeddb'
+    # Ignore majors for now — they need a manual review.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'Europe/Madrid'
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns:
+          - '*'

@@ -23,6 +23,11 @@ dev-dist/
 coverage/
 .nyc_output/
 
+# Playwright (e2e)
+playwright-report/
+test-results/
+.playwright/
+
 # Logs
 logs/
 *.log

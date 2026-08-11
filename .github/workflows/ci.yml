@@ -1,0 +1,218 @@
+# CI for SQL Academy PWA.
+#
+# Triggers:
+#   - every push to main
+#   - every PR against main
+#
+# Jobs:
+#   1. `lint-typecheck` — fast feedback (<1 min): oxlint + tsc.
+#   2. `test` — the full vitest suite (~30s on CI, ~60s locally).
+#   3. `coverage` — same as `test` but with `--coverage` and uploads
+#      the lcov report as a build artefact (Codecov can pick it up
+#      later if desired).
+#   4. `build` — production build via `npm run build`. Confirms the
+#      PWA still produces a green precache.
+#
+# Concurrency:
+#   - one run per branch. Newer pushes cancel in-flight runs of the
+#     same ref. This saves CI minutes on rapid pushes.
+#
+# Caching:
+#   - `actions/setup-node` caches `~/.npm` based on package-lock.json
+#     so re-runs of the same SHA skip the install step.
+#
+# Branch protection:
+#   - recommend marking this workflow as required for `main` so PRs
+#     cannot be merged with red CI.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-flight runs of the same branch / PR when a new push
+# lands. `concurrency.group` is keyed on the ref so a push to main
+# cancels a previous main run, and a PR push cancels the previous
+# PR run. We never cancel main from a PR or vice-versa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pin the Node version so contributors and CI agree. The repo
+  # already supports Node ≥ 20.
+  NODE_VERSION: '20.x'
+
+jobs:
+  # ───────────────────────── 1. Lint + typecheck ─────────────────────────
+  lint-typecheck:
+    name: Lint + typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  # ───────────────────────── 2. Test ─────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint-typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run tests
+        run: npm test
+
+  # ───────────────────────── 3. Coverage ─────────────────────────
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint-typecheck
+    # Coverage is informational; we do not block PRs on a coverage
+    # drop, but we do publish the report as an artefact.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+      - name: Summarise coverage
+        # Print the overall percentages so they show up in the
+        # workflow run summary even if the user does not download
+        # the artefact. We grab the `json-summary` report and
+        # extract the four metrics we care about.
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const s = require('./coverage/coverage-summary.json').total;
+              const fmt = (n) => (n == null ? 'n/a' : n.toFixed(2) + '%');
+              console.log('Coverage summary:');
+              for (const k of ['lines','statements','functions','branches']) {
+                console.log('  ' + k.padEnd(11) + ' = ' + fmt(s[k].pct));
+              }
+            "
+          else
+            echo 'No coverage summary file found — coverage probably failed.'
+          fi
+
+  # ───────────────────────── 4. Build ─────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artefact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # ───────────────────────── 5. E2E (Playwright) ─────────────────────────
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    # E2E is informational for now: the manual procedure in
+    # `OFFLINE-PWA-REPORT.md` is the source of truth for the PWA
+    # verification. We still run the suite on every push so a
+    # regression in the offline path is caught before merge.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        # `--with-deps` installs the system libraries Chromium needs
+        # on Ubuntu. We pin to Chromium only to keep the image small.
+        run: npx playwright install --with-deps chromium
+
+      - name: Download dist artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Run Playwright offline suite
+        # The webServer config in `playwright.config.ts` boots
+        # `vite preview` against the artefact we just downloaded.
+        run: npx playwright test --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+          retention-days: 7

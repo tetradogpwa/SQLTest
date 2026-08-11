@@ -54,19 +54,27 @@ const THEME_ICONS: Record<ThemeChoice, typeof Sun> = {
 
 const LOCALE_OPTIONS: ReadonlyArray<{ value: Locale; label: string }> = [
   { value: 'es', label: 'ES' },
+  { value: 'ca', label: 'CA' },
   { value: 'en', label: 'EN' },
 ]
 
 export interface TopBarProps {
   /** Toggle the mobile sidebar. Hidden on desktop. */
   onToggleSidebar?: () => void
+  /** Whether the mobile sidebar drawer is currently open. */
+  sidebarOpen?: boolean
   /** Sidebar toggle label (used as the button's accessible name). */
   sidebarToggleLabel?: string
   /** External signal that the editor is flushing drafts. */
   saving?: boolean
 }
 
-export function TopBar({ onToggleSidebar, sidebarToggleLabel, saving }: TopBarProps): React.ReactNode {
+export function TopBar({
+  onToggleSidebar,
+  sidebarOpen = false,
+  sidebarToggleLabel,
+  saving,
+}: TopBarProps): React.ReactNode {
   const { t, locale, setLocale } = useTranslation()
   const { theme, setTheme, resolvedTheme } = useTheme()
   const online = useOnlineStatus()
@@ -93,8 +101,10 @@ export function TopBar({ onToggleSidebar, sidebarToggleLabel, saving }: TopBarPr
             type="button"
             className={styles.iconButton}
             aria-label={sidebarToggleLabel ?? t('nav.toggleSidebar')}
-            aria-expanded={false}
+            aria-expanded={sidebarOpen}
+            aria-controls="app-sidebar-drawer"
             onClick={onToggleSidebar}
+            data-testid="topbar-sidebar-toggle"
           >
             <MenuIcon />
           </button>

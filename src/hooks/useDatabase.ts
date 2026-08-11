@@ -53,6 +53,7 @@ export interface DBApi {
   export(dbId: number): Promise<Uint8Array>
   listUserDatabases(): Promise<unknown[]>
   deleteUserDatabase(dbId: number): Promise<void>
+  createUserDatabase(name: string): Promise<unknown>
 }
 
 /* ──────────────────────────────────────────────────────────────────── *

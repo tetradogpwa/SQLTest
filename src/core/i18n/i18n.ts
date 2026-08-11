@@ -1,11 +1,12 @@
 /**
  * Internationalisation core.
  *
- * MVP scope: synchronous `es` dictionary with a tiny `en` override
- * layer. The architecture is the same as the production one — adding
- * more dictionaries is a matter of importing them into
- * `dictionaries`. Pluralisation / lazy loading are out of scope for
- * the MVP and will land in a later phase.
+ * MVP scope: three locales (`es`, `en`, `ca`). `es` is the canonical
+ * dictionary; `en` and `ca` are maintained as parallel translations.
+ * The architecture is the same as the production one — adding more
+ * dictionaries is a matter of importing them into `dictionaries`.
+ * Pluralisation / lazy loading are out of scope for the MVP and will
+ * land in a later phase.
  *
  * Conventions
  * -----------
@@ -15,15 +16,26 @@
  *  - Variable interpolation uses `{name}` placeholders. Unknown
  *    placeholders are left in the output so the dev can see them.
  *  - Locale defaults to `DEFAULT_LOCALE` (Spanish for this MVP).
+ *  - The persisted `locale` setting overrides the module default;
+ *    the `useTranslation` hook subscribes to it so React re-renders
+ *    when the user changes the language in Settings.
  */
 
 import { useCallback, useSyncExternalStore } from 'react'
 
-export type Locale = 'es' | 'en'
+import { settings } from '../persistence/settings'
+
+export type Locale = 'es' | 'ca' | 'en'
 
 export const DEFAULT_LOCALE: Locale = 'es'
 
-export const SUPPORTED_LOCALES: ReadonlyArray<Locale> = ['es', 'en'] as const
+export const SUPPORTED_LOCALES: ReadonlyArray<Locale> = ['es', 'ca', 'en'] as const
+
+export const LOCALE_LABELS: Readonly<Record<Locale, string>> = {
+  es: 'Español',
+  ca: 'Català',
+  en: 'English',
+}
 
 type Dictionary = Readonly<Record<string, string>>
 
@@ -80,6 +92,7 @@ const es: Dictionary = {
   'home.openCourse': 'Abrir el curso',
   'home.openPlayground': 'Abrir el playground',
   'home.manageDatabases': 'Gestionar bases de datos',
+  'home.quickLinks': 'Accesos rápidos',
   'home.progress.title': 'Tu progreso',
   'home.progress.empty': 'Aún no has completado ningún ejercicio. Empieza por la primera lección.',
   'home.progress.lessonsCompleted': '{done} de {total} lecciones completadas',
@@ -120,6 +133,59 @@ const es: Dictionary = {
   'databases.title': 'Bases de datos',
   'databases.subtitle': 'Importa, exporta y gestiona tus bases de datos SQLite.',
   'databases.empty': 'No tienes bases de datos todavía.',
+  'databases.emptyHint': 'Crea una nueva o importa un archivo .sqlite3 / .db para empezar.',
+  'databases.create': 'Crear base de datos',
+  'databases.import': 'Importar archivo',
+  'databases.search.placeholder': 'Buscar por nombre…',
+  'databases.size': 'Tamaño',
+  'databases.updated': 'Modificada',
+  'databases.origin.bundled': 'Preinstalada',
+  'databases.origin.imported': 'Importada',
+  'databases.origin.created': 'Creada',
+  'databases.capability': 'Almacenamiento',
+  'databases.createDialog.title': 'Crear base de datos',
+  'databases.createDialog.nameLabel': 'Nombre',
+  'databases.createDialog.namePlaceholder': 'mi-proyecto',
+  'databases.createDialog.submit': 'Crear',
+  'databases.createDialog.cancel': 'Cancelar',
+  'databases.createDialog.error.invalidName': 'El nombre no puede estar vacío ni contener caracteres no permitidos.',
+  'databases.importDialog.title': 'Importar base de datos',
+  'databases.importDialog.dropzone': 'Arrastra un archivo .sqlite3 o .db aquí',
+  'databases.importDialog.pickFile': 'o haz clic para seleccionar',
+  'databases.importDialog.nameLabel': 'Nombre (opcional)',
+  'databases.importDialog.submit': 'Importar',
+  'databases.importDialog.error.file': 'Selecciona un archivo válido.',
+  'databases.importDialog.error.tooBig': 'El archivo excede el límite permitido.',
+  'databases.importDialog.error.failed': 'No se pudo importar la base de datos.',
+  'databases.rowActions.ariaLabel': 'Acciones de la base de datos',
+  'databases.rowActions.open': 'Abrir en el playground',
+  'databases.rowActions.rename': 'Renombrar',
+  'databases.rowActions.export': 'Exportar a archivo',
+  'databases.rowActions.duplicate': 'Duplicar',
+  'databases.rowActions.delete': 'Eliminar',
+  'databases.confirmDelete.title': '¿Eliminar base de datos?',
+  'databases.confirmDelete.message': 'Esta acción no se puede deshacer. Se eliminarán también todos los snapshots.',
+  'databases.confirmDelete.confirm': 'Eliminar',
+  'databases.confirmRename.title': 'Renombrar base de datos',
+  'databases.confirmRename.confirm': 'Renombrar',
+
+  // Playground enhancements
+  'playground.dbSelector.label': 'Base de datos',
+  'playground.snapshots.title': 'Snapshots',
+  'playground.snapshots.create': 'Crear snapshot',
+  'playground.snapshots.empty': 'Aún no has creado snapshots. Crea uno antes de cambios destructivos.',
+  'playground.snapshots.restore': 'Restaurar',
+  'playground.snapshots.delete': 'Borrar',
+  'playground.snapshots.reason.auto': 'Auto',
+  'playground.snapshots.reason.manual': 'Manual',
+  'playground.snapshots.reason.pre-restore': 'Pre-restauración',
+  'playground.snapshots.reason.pre-destructive': 'Pre-destructivo',
+  'playground.undo.label': 'Deshacer',
+  'playground.undo.title': 'Deshacer último cambio',
+  'playground.stats.title': 'Estadísticas',
+  'playground.stats.size': 'Tamaño de la DB',
+  'playground.stats.queries': 'Consultas ejecutadas',
+  'playground.stats.lastError': 'Último error',
 
   // Settings
   'settings.title': 'Ajustes',
@@ -127,6 +193,8 @@ const es: Dictionary = {
   'settings.section.appearance': 'Apariencia',
   'settings.section.language': 'Idioma',
   'settings.section.editor': 'Editor',
+  'settings.section.data': 'Datos',
+  'settings.section.about': 'Acerca de',
   'settings.theme.label': 'Tema',
   'settings.theme.light': 'Claro',
   'settings.theme.dark': 'Oscuro',
@@ -135,11 +203,29 @@ const es: Dictionary = {
   'settings.fontSize.sm': 'Pequeño',
   'settings.fontSize.md': 'Mediano',
   'settings.fontSize.lg': 'Grande',
+  'settings.tabSize.label': 'Tamaño de tabulador',
+  'settings.tabSize.2': '2 espacios',
+  'settings.tabSize.4': '4 espacios',
+  'settings.wordWrap.label': 'Ajuste de línea',
+  'settings.wordWrap.on': 'Activado',
+  'settings.wordWrap.off': 'Desactivado',
   'settings.locale.label': 'Idioma de la interfaz',
   'settings.locale.es': 'Español',
+  'settings.locale.ca': 'Català',
   'settings.locale.en': 'Inglés',
+  'settings.autoSave.label': 'Guardar borradores automáticamente',
   'settings.reset': 'Restaurar valores por defecto',
   'settings.reset.confirm': '¿Restaurar todos los ajustes a sus valores por defecto?',
+  'settings.data.clearProgress': 'Borrar todo el progreso',
+  'settings.data.clearProgress.confirm': '¿Borrar todo tu progreso, historial y borradores? Esta acción no se puede deshacer.',
+  'settings.data.clearProgress.done': 'Progreso borrado.',
+  'settings.data.exportConfig': 'Exportar configuración',
+  'settings.data.exportConfig.done': 'Configuración exportada.',
+  'settings.about.version': 'Versión',
+  'settings.about.build': 'Build',
+  'settings.about.builtAt': 'Generado el',
+  'settings.about.docs': 'Documentación',
+  'settings.about.repo': 'Repositorio',
 
   // Sidebar
   'sidebar.progress': 'Progreso del curso',
@@ -192,6 +278,7 @@ const en: Dictionary = {
   'home.openCourse': 'Open the course',
   'home.openPlayground': 'Open the playground',
   'home.manageDatabases': 'Manage databases',
+  'home.quickLinks': 'Quick links',
   'home.progress.title': 'Your progress',
   'home.progress.empty': 'You have not completed any exercises yet. Start with the first lesson.',
   'home.progress.lessonsCompleted': '{done} of {total} lessons completed',
@@ -250,13 +337,189 @@ const en: Dictionary = {
   'error.themeContext': 'useTheme() must be used inside a <ThemeProvider>.',
 }
 
-const dictionaries: Readonly<Record<Locale, Dictionary>> = { es, en }
+const ca: Dictionary = {
+  ...es,
+  'app.tagline': 'Aprèn SQL al teu navegador, 100% fora de línia.',
+  'nav.home': 'Inici',
+  'nav.course': 'Curs',
+  'nav.lessons': 'Lliçons',
+  'nav.playground': 'Playground',
+  'nav.databases': 'Bases de dades',
+  'nav.settings': 'Configuració',
+  'nav.toggleSidebar': 'Mostra / amaga el menú lateral',
+  'topbar.saving': 'Desant…',
+  'topbar.saved': 'Canvis desats',
+  'topbar.workerOnline': 'Worker connectat',
+  'topbar.workerOffline': 'Worker sense connexió',
+  'common.start': 'Comença',
+  'common.continue': 'Continua',
+  'common.back': 'Torna',
+  'common.next': 'Següent',
+  'common.cancel': 'Cancel·la',
+  'common.save': 'Desa',
+  'common.close': 'Tanca',
+  'common.open': 'Obre',
+  'common.delete': 'Elimina',
+  'common.confirm': 'Confirma',
+  'common.loading': 'Carregant…',
+  'common.retry': 'Reintenta',
+  'common.comingSoon': 'Pròximament',
+  'home.welcome': 'Benvingut a SQL Academy',
+  'home.subtitle': 'Aprèn SQL pas a pas, amb exercicis interactius i un editor al navegador.',
+  'home.openCourse': 'Obre el curs',
+  'home.openPlayground': 'Obre el playground',
+  'home.manageDatabases': 'Gestiona les bases de dades',
+  'home.quickLinks': 'Accessos ràpids',
+  'home.progress.title': 'El teu progrés',
+  'home.progress.empty': 'Encara no has completat cap exercici. Comença per la primera lliçó.',
+  'home.progress.lessonsCompleted': '{done} de {total} lliçons completades',
+  'home.progress.percent': '{percent}% completat',
+  'course.title': 'Curs de SQL',
+  'course.subtitle': '16 nivells per dominar SQL de zero a avançat.',
+  'course.levels': 'Nivells',
+  'course.lessonsInLevel': '{count} lliçons',
+  'lesson.title': 'Lliçó',
+  'lesson.firstExercise': 'Ves al primer exercici',
+  'exercise.title': 'Exercici',
+  'exercise.sqlPlaceholder': 'Escriu la teva consulta aquí…',
+  'exercise.run': 'Executa',
+  'exercise.check': 'Comprova',
+  'exercise.hint': 'Pista',
+  'exercise.solution': 'Mostra la solució',
+  'playground.title': 'Playground SQL',
+  'playground.subtitle': 'Una base de dades SQLite buida per experimentar lliurement.',
+  'playground.dbSelector.label': 'Base de dades',
+  'playground.snapshots.title': 'Snapshots',
+  'playground.snapshots.create': 'Crea un snapshot',
+  'playground.snapshots.empty': 'Encara no has creat snapshots. Crea\'n un abans de canvis destructius.',
+  'playground.snapshots.restore': 'Restaura',
+  'playground.snapshots.delete': 'Elimina',
+  'playground.snapshots.reason.manual': 'Manual',
+  'playground.snapshots.reason.pre-restore': 'Pre-restauració',
+  'playground.snapshots.reason.pre-destructive': 'Pre-destructiu',
+  'playground.undo.label': 'Desfés',
+  'playground.undo.title': 'Desfés l\'últim canvi',
+  'playground.stats.title': 'Estadístiques',
+  'playground.stats.size': 'Mida de la DB',
+  'playground.stats.queries': 'Consultes executades',
+  'playground.stats.lastError': 'Últim error',
+  'databases.title': 'Bases de dades',
+  'databases.subtitle': 'Importa, exporta i gestiona les teves bases de dades SQLite.',
+  'databases.empty': 'Encara no tens bases de dades.',
+  'databases.emptyHint': 'Crea una de nova o importa un fitxer .sqlite3 / .db per començar.',
+  'databases.create': 'Crea una base de dades',
+  'databases.import': 'Importa un fitxer',
+  'databases.search.placeholder': 'Cerca pel nom…',
+  'databases.size': 'Mida',
+  'databases.updated': 'Modificada',
+  'databases.origin.bundled': 'Preinstal·lada',
+  'databases.origin.imported': 'Importada',
+  'databases.origin.created': 'Creada',
+  'databases.capability': 'Emmagatzematge',
+  'databases.createDialog.title': 'Crea una base de dades',
+  'databases.createDialog.nameLabel': 'Nom',
+  'databases.createDialog.namePlaceholder': 'el-meu-projecte',
+  'databases.createDialog.submit': 'Crea',
+  'databases.createDialog.cancel': 'Cancel·la',
+  'databases.createDialog.error.invalidName': 'El nom no pot ser buit ni contenir caràcters no permesos.',
+  'databases.importDialog.title': 'Importa una base de dades',
+  'databases.importDialog.dropzone': 'Arrossega un fitxer .sqlite3 o .db aquí',
+  'databases.importDialog.pickFile': 'o fes clic per seleccionar-lo',
+  'databases.importDialog.nameLabel': 'Nom (opcional)',
+  'databases.importDialog.submit': 'Importa',
+  'databases.importDialog.error.file': 'Selecciona un fitxer vàlid.',
+  'databases.importDialog.error.tooBig': 'El fitxer excedeix el límit permès.',
+  'databases.importDialog.error.failed': 'No s\'ha pogut importar la base de dades.',
+  'databases.rowActions.ariaLabel': 'Accions de la base de dades',
+  'databases.rowActions.open': 'Obre al playground',
+  'databases.rowActions.rename': 'Reanomena',
+  'databases.rowActions.export': 'Exporta a fitxer',
+  'databases.rowActions.duplicate': 'Duplica',
+  'databases.rowActions.delete': 'Elimina',
+  'databases.confirmDelete.title': 'Eliminar la base de dades?',
+  'databases.confirmDelete.message': 'Aquesta acció no es pot desfer. També s\'eliminaran tots els snapshots.',
+  'databases.confirmDelete.confirm': 'Elimina',
+  'databases.confirmRename.title': 'Reanomena la base de dades',
+  'databases.confirmRename.confirm': 'Reanomena',
+  'settings.title': 'Configuració',
+  'settings.subtitle': 'Preferències generals de l\'aplicació.',
+  'settings.section.appearance': 'Aparença',
+  'settings.section.language': 'Idioma',
+  'settings.section.editor': 'Editor',
+  'settings.section.data': 'Dades',
+  'settings.section.about': 'Quant a',
+  'settings.theme.label': 'Tema',
+  'settings.theme.light': 'Clar',
+  'settings.theme.dark': 'Fosc',
+  'settings.theme.auto': 'Automàtic (sistema)',
+  'settings.fontSize.label': 'Mida de la font',
+  'settings.fontSize.sm': 'Petita',
+  'settings.fontSize.md': 'Mitjana',
+  'settings.fontSize.lg': 'Gran',
+  'settings.tabSize.label': 'Mida del tabulador',
+  'settings.tabSize.2': '2 espais',
+  'settings.tabSize.4': '4 espais',
+  'settings.wordWrap.label': 'Ajust de línia',
+  'settings.wordWrap.on': 'Activat',
+  'settings.wordWrap.off': 'Desactivat',
+  'settings.locale.label': 'Idioma de la interfície',
+  'settings.locale.es': 'Espanyol',
+  'settings.locale.ca': 'Català',
+  'settings.locale.en': 'Anglès',
+  'settings.autoSave.label': 'Desar esborranys automàticament',
+  'settings.reset': 'Restaura els valors per defecte',
+  'settings.reset.confirm': 'Vols restaurar tots els ajustos als valors per defecte?',
+  'settings.data.clearProgress': 'Esborra tot el progrés',
+  'settings.data.clearProgress.confirm': 'Vols esborrar tot el teu progrés, historial i esborranys? Aquesta acció no es pot desfer.',
+  'settings.data.clearProgress.done': 'Progrés esborrat.',
+  'settings.data.exportConfig': 'Exporta la configuració',
+  'settings.data.exportConfig.done': 'Configuració exportada.',
+  'settings.about.version': 'Versió',
+  'settings.about.build': 'Build',
+  'settings.about.builtAt': 'Generat el',
+  'settings.about.docs': 'Documentació',
+  'settings.about.repo': 'Repositori',
+  'sidebar.progress': 'Progrés del curs',
+  'sidebar.progress.empty': 'Sense progrés encara.',
+  'sidebar.progress.complete': 'Curs complet',
+  'notFound.title': 'Pàgina no trobada',
+  'notFound.message': 'La pàgina que busques no existeix o ha estat moguda.',
+  'notFound.backHome': 'Torna a l\'inici',
+  'error.generic': 'S\'ha produït un error inesperat. Torna-ho a provar.',
+  'error.themeContext': 'useTheme() s\'ha d\'usar dins d\'un <ThemeProvider>.',
+}
+
+const dictionaries: Readonly<Record<Locale, Dictionary>> = { es, ca, en }
 
 /* ------------------------------------------------------------------ *
  *  Locale state                                                      *
  * ------------------------------------------------------------------ */
 
 let currentLocale: Locale = DEFAULT_LOCALE
+
+/**
+ * Sync the module-level `currentLocale` from the persisted settings.
+ * Called once at app boot by `main.tsx` (or eagerly here on first
+ * import) so a user who picked `ca` last session lands in Catalan.
+ */
+async function hydrateLocaleFromSettings(): Promise<void> {
+  try {
+    const persisted = await settings.get('locale')
+    if (SUPPORTED_LOCALES.includes(persisted) && currentLocale !== persisted) {
+      currentLocale = persisted
+      // Wake up the React subscribers — they only re-render on
+      // `setLocale()` events otherwise.
+      emitLocaleChange()
+    }
+  } catch {
+    // IndexedDB may fail in private mode / SSR. Keep the default.
+  }
+}
+
+// Fire-and-forget; the `useTranslation` hook re-renders on the first
+// settings write so the temporary `DEFAULT_LOCALE` flash is invisible
+// in practice.
+void hydrateLocaleFromSettings()
 
 export function getLocale(): Locale {
   return currentLocale
@@ -271,6 +534,12 @@ export function setLocale(locale: Locale): void {
   if (currentLocale === locale) return
   currentLocale = locale
   emitLocaleChange()
+  // Persist so a reload keeps the same locale. We swallow errors:
+  // the in-memory change already took effect.
+  void settings.set('locale', locale).catch((err: unknown) => {
+    // eslint-disable-next-line no-console
+    console.warn('[i18n] failed to persist locale:', err)
+  })
 }
 
 export function isSupportedLocale(value: string): value is Locale {
@@ -336,26 +605,21 @@ function getServerSnapshot(): Locale {
 /**
  * Read & change the current locale from a React component.
  *
- * The hook subscribes to the settings store, so a change via
- * `settings.set('locale', 'en')` (or the helper `setLocale` exported
- * here) triggers a re-render automatically.
+ * The hook subscribes to module-level locale changes, so a call to
+ * `setLocale()` (or the one triggered by `settings.set('locale', X)`)
+ * propagates to every consumer without extra plumbing.
  */
 export function useTranslation(): {
   t: (key: string, vars?: InterpolationVars) => string
   locale: Locale
   setLocale: (next: Locale) => void
 } {
-  // We listen to the settings store for the locale; the in-memory
-  // `currentLocale` is the *initial* value (DEFAULT_LOCALE).
   const locale = useSyncExternalStore(
     subscribeLocale,
     () => currentLocale,
     getServerSnapshot,
   )
 
-  // Locale lives in module memory for the MVP. A future phase will
-  // persist it through the settings store (the Settings interface
-  // doesn't yet have a `locale` key).
   const persist = useCallback((next: Locale) => {
     setLocale(next)
   }, [])

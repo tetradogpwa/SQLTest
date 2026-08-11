@@ -42,6 +42,7 @@ function makeFakeApi(): FakeApi {
     export: vi.fn(),
     listUserDatabases: vi.fn(async () => []),
     deleteUserDatabase: vi.fn(async () => undefined),
+    createUserDatabase: vi.fn(async () => ({ dbId: 1, sizeBytes: 0 })),
   } as FakeApi
 }
 

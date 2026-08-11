@@ -273,10 +273,10 @@ export function DbExplorer({
 
           {selectedTable && schema ? (
             <li className={styles.tableDetail}>
-              <h4 className={styles.detailTitle}>
+              <h3 className={styles.detailTitle}>
                 <KeyRound size={14} aria-hidden="true" /> Columnas de{' '}
                 <code>{selectedTable}</code>
-              </h4>
+                </h3>
               <ul className={styles.columnList}>
                 {(
                   schema.tables.find((t) => t.name === selectedTable)?.columns ?? []

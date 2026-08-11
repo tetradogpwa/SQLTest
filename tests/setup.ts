@@ -5,6 +5,8 @@
  *
  *  - Loads the `jest-dom` matchers (`toBeInTheDocument`, etc.) so DOM-based
  *    tests have ergonomic assertions.
+ *  - Registers the `vitest-axe` matcher (`toHaveNoViolations`) so the a11y
+ *    smoke tests can assert on the axe-core results.
  *  - Installs the `fake-indexeddb` shim onto `globalThis` so that Dexie can
  *    run inside the happy-dom environment. Without this, opening a Dexie
  *    database would throw "IndexedDB API missing. Are you in a private
@@ -16,3 +18,8 @@
  */
 import '@testing-library/jest-dom/vitest'
 import 'fake-indexeddb/auto'
+import * as matchers from 'vitest-axe/matchers'
+import 'vitest-axe/dist/extend-expect.d.ts'
+import { expect } from 'vitest'
+
+expect.extend(matchers)

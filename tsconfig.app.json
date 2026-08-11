@@ -32,5 +32,5 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "tests/types/**/*.d.ts"]
 }

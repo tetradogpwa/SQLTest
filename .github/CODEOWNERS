@@ -1,0 +1,26 @@
+# CODEOWNERS
+#
+# Each line is a file pattern followed by one or more owners. The
+# last matching pattern wins. Owners receive a review request when
+# a PR touches the matching files.
+#
+# We use the GitHub team / handle of the original author. The
+# project is currently a single-developer PWA; the intent is to
+# make it obvious where to ask for review on sensitive surfaces
+# (Worker + persistence) without blocking first-time contributors
+# from opening a PR.
+
+# Everything defaults to the project owner.
+*                           @tetradogpwa
+
+# Core engine — Worker, SQL execution, persistence schema.
+# Changes here can corrupt user databases, so a second pair of eyes
+# is required.
+/src/workers/               @tetradogpwa
+/src/core/exercises/         @tetradogpwa
+/src/core/persistence/       @tetradogpwa
+
+# CI / release config — careful review before changing the pipeline.
+/.github/                    @tetradogpwa
+/vitest.config.ts            @tetradogpwa
+/vite.config.ts              @tetradogpwa

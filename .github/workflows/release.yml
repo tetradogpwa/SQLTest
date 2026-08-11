@@ -1,0 +1,85 @@
+# Release workflow for SQL Academy PWA.
+#
+# Strategy: tag-based. Push a `v*` tag (e.g. `v0.1.0`) and this
+# workflow will:
+#   1. build the production bundle,
+#   2. attach the contents of `dist/` to a GitHub Release,
+#   3. publish a short summary of the build on the release page.
+#
+# Why not `release-please`?
+#   The repo does not use Conventional Commits yet — the commit
+#   history is hand-written. Setting up release-please would
+#   require either a mass rewrite or a `squash-merge` policy in
+#   the future. Tag-based releases are simple and explicit: the
+#   maintainer runs `npm version <bump>` (which creates the tag
+#   and the commit), pushes both, and the release goes out.
+#
+# Future: once the project adopts Conventional Commits, switch to
+# googleapis/release-please-action. The npm `version` script and
+# this workflow stay as fallbacks.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.1.0). Leave blank for the latest pushed tag.'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build + attach to release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "value=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref_name }}" == v* ]]; then
+            echo "value=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Could not resolve a release tag" >&2
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        # When the workflow is triggered by a tag push, the
+        # checkout above already points at the tagged commit, so
+        # `process.env.npm_package_version` (consumed by
+        # `vite.config.ts` → `__APP_VERSION__`) reflects the
+        # version we are about to release. No special env wiring
+        # needed — `npm version <bump>` keeps package.json in
+        # sync with the tag.
+        run: npm run build
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.value }}
+          name: ${{ steps.tag.outputs.value }}
+          generate_release_notes: true
+          files: |
+            dist/**
+            dist/**/.*
+          fail_on_unmatched_files: false

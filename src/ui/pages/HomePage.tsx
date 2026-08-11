@@ -71,7 +71,8 @@ export function HomePage(): React.ReactNode {
         <p>{t('home.subtitle')}</p>
       </header>
 
-      <section aria-label={t('home.progress.title')}>
+      <section aria-label={t('home.quickLinks')}>
+        <h2 className={styles.visuallyHidden}>{t('home.quickLinks')}</h2>
         <div className={styles.cardGrid}>
           {QUICK_LINKS.map((link) => (
             <Link

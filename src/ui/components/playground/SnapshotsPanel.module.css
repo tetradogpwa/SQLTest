@@ -1,0 +1,185 @@
+/*
+ * SnapshotsPanel — list of snapshots for the playground database.
+ *
+ * The panel sits under the editor in the playground's right column.
+ * Each row is compact (label + reason badge + size + relative time)
+ * and exposes two icon-only actions (restore / delete) on the right.
+ *
+ * Auto-snapshot rows (`reason: 'pre-destructive'`) get a warning
+ * tone so the user can spot them at a glance; manual / restore rows
+ * stay neutral.
+ */
+
+.panel {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.createButton {
+  background: var(--color-primary);
+  color: var(--color-primary-fg);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.createButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.createButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  background: var(--color-error-soft);
+  padding: var(--space-2) var(--space-3);
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding: var(--space-3);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.reasonBadge {
+  font-size: var(--font-size-xs);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.reasonBadge[data-reason='pre-destructive'] {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.reasonBadge[data-reason='pre-restore'] {
+  background: var(--color-info-soft);
+  color: var(--color-info);
+}
+
+.reasonBadge[data-reason='manual'] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.itemSize,
+.itemTime {
+  font-variant-numeric: tabular-nums;
+}
+
+.itemActions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.restoreButton,
+.deleteButton {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.restoreButton:hover:not(:disabled),
+.deleteButton:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+.deleteButton:hover:not(:disabled) {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.restoreButton:disabled,
+.deleteButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

@@ -64,6 +64,7 @@ export interface ImportExportManagerLike {
   export(dbId: number): Promise<Uint8Array>
   listUserDatabases(): Promise<UserDatabaseInfo[]>
   deleteUserDatabase(dbId: number): Promise<void>
+  create(targetName: string): Promise<{ dbId: number; sizeBytes: number }>
 }
 
 /** Subset of the wa-sqlite API the DBAPI itself needs. */
@@ -253,6 +254,10 @@ export class DBAPI {
   async deleteUserDatabase(dbId: number): Promise<void> {
     return this.io.deleteUserDatabase(dbId)
   }
+
+  async createUserDatabase(name: string): Promise<{ dbId: number; sizeBytes: number }> {
+    return this.io.create(name)
+  }
 }
 
 /* ──────────────────────────────────────────────────────────────────── *
@@ -290,6 +295,7 @@ class NotImplementedIO implements ImportExportManagerLike {
   export(): Promise<Uint8Array> { return this.boom() }
   listUserDatabases(): Promise<UserDatabaseInfo[]> { return this.boom() }
   deleteUserDatabase(): Promise<void> { return this.boom() }
+  create(): Promise<{ dbId: number; sizeBytes: number }> { return this.boom() }
 }
 
 /* ──────────────────────────────────────────────────────────────────── *
