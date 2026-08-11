@@ -1,0 +1,201 @@
+/*
+ * HintPanel — collapsible list of pedagogical hints for the current exercise.
+ *
+ * Visual breakdown:
+ *
+ *   ┌───────────────────────────────────────────────────────────┐
+ *   │ ▾ Pistas (2 / 4)                                          │
+ *   ├───────────────────────────────────────────────────────────┤
+ *   │  [💡] pista conceptual #1                                 │
+ *   │       texto de la pista…                                  │
+ *   │  [</>] pista sintáctica #2                                │
+ *   │       texto de la pista…                                  │
+ *   ├───────────────────────────────────────────────────────────┤
+ *   │  [ Mostrar siguiente pista ]   (or "Has visto todas…")    │
+ *   └───────────────────────────────────────────────────────────┘
+ *
+ * Design notes:
+ *   - The header is always visible (it owns the count). The user can
+ *     collapse the body with the chevron to keep the play area compact
+ *     while still seeing how many hints remain.
+ *   - Each hint card carries a small icon that maps to the hint
+ *     category (`Lightbulb` / `Code` / `Compass` / `Book`) so the
+ *     learner can scan the list without reading every body.
+ *   - The "all revealed" line is a muted message — no button — to make
+ *     it obvious that there is no more help to ask for in this area.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.header:hover,
+.header:focus-visible {
+  color: var(--color-primary);
+  outline: none;
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.headerTitle {
+  flex: 1 1 auto;
+  text-transform: lowercase;
+}
+
+.headerCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.cardIcon[data-type='syntactic'] {
+  background-color: var(--color-info-soft);
+  color: var(--color-info);
+}
+
+.cardIcon[data-type='semantic'] {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.cardIcon[data-type='reference'] {
+  background-color: var(--color-secondary-soft, var(--color-primary-soft));
+  color: var(--color-secondary);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.cardLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.cardText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.revealButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background-color: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.revealButton:hover,
+.revealButton:focus-visible {
+  background-color: var(--color-primary-soft);
+  outline: none;
+}
+
+.revealButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.allRevealed {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-3) 0;
+}

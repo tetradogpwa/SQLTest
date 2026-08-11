@@ -1,0 +1,3 @@
+# SharedVFS scratch directory used by POC-4.
+# Created/cleaned at runtime by `poc-4-worker-recreate.ts`.
+.poc4-shared-vfs/

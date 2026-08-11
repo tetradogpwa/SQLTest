@@ -1,0 +1,192 @@
+/*
+ * LessonView — single-lesson page.
+ *
+ * Renders the lesson header + objective bullets + a card grid of
+ * exercise cards. The cards are themselves buttons that fire
+ * `onSelectExercise(id)`. The page-wide chrome (sidebar, top bar)
+ * lives outside this component; the parent supplies a target.
+ */
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  max-width: 70ch;
+}
+
+.objectivesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.objectivesTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.objectivesList {
+  list-style: disc;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.exerciseList {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.exerciseCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.exerciseCard:hover,
+.exerciseCard:focus-within {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.exerciseCard[data-completed='true'] {
+  border-left: 3px solid var(--color-success);
+}
+
+.exerciseHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.exerciseTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.exerciseMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  height: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.completedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 var(--space-2);
+  height: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.prompt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.difficulty {
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+  letter-spacing: 0.05em;
+}
+
+.action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.startButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.startButton:hover,
+.startButton:focus-visible {
+  background-color: var(--color-primary-hover);
+  outline: none;
+}
+
+.startButton[data-completed='true'] {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}

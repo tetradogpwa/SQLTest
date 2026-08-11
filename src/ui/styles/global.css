@@ -1,0 +1,104 @@
+/*
+ * Global element styles.
+ *
+ * Loaded after reset.css and tokens.css. Provides the *element* defaults
+ * (body font, headings, code, hr) that every page inherits. Component
+ * styling lives in CSS Modules under each component.
+ */
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+  font-weight: var(--font-weight-bold);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+  font-weight: var(--font-weight-semibold);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-semibold);
+}
+
+h4 {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-semibold);
+}
+
+h5,
+h6 {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+p {
+  line-height: var(--line-height-normal);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+
+code {
+  background-color: var(--color-surface);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  background-color: var(--color-surface);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+mark {
+  background-color: var(--color-warning-soft);
+  color: var(--color-text);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+abbr[title] {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* App root — every page sits inside #root > .app > <main>. */
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}

@@ -1,0 +1,268 @@
+/*
+ * Shared page-layout styles.
+ *
+ * Used by the placeholder pages to render a consistent header +
+ * content layout without each page re-defining the spacing.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pageHeader h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.pageHeader p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  max-width: 60ch;
+}
+
+.cardGrid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-elevated);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.cardTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.cardDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 0 var(--space-2);
+  height: 22px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.badge[data-tone='primary'] {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.badge[data-tone='success'] {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.badge[data-tone='warning'] {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-elevated);
+}
+
+.emptyStateTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.emptyStateMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  max-width: 50ch;
+}
+
+.emptyStateIcon {
+  color: var(--color-text-subtle);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.button:hover,
+.button:focus-visible {
+  background-color: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+.button[data-variant='ghost'] {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.button[data-variant='ghost']:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.lessonList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lessonListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-elevated);
+}
+
+.lessonListItem[data-locked='true'] {
+  opacity: 0.6;
+}
+
+.lessonTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.lessonMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.levelsGrid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.levelCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-elevated);
+  position: relative;
+}
+
+.levelCard[data-state='locked'] {
+  opacity: 0.7;
+}
+
+.levelNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-primary-fg);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+}
+
+.levelTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.levelDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.editorArea {
+  min-height: 240px;
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-elevated);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

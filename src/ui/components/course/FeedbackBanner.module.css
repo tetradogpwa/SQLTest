@@ -1,0 +1,162 @@
+/*
+ * FeedbackBanner — top-of-editor banner that summarises the last check.
+ *
+ * Three states:
+ *
+ *   1. `success === true`  → green "¡Correcto!" banner.
+ *   2. `success === false` → red banner with each failed validation
+ *      + a "Sugerencias automáticas" section listing the top patterns.
+ *   3. `success === null`  → render nothing.
+ *
+ * Design notes:
+ *   - The success banner is intentionally minimal (no sub-cards): the
+ *     validator has already approved every check, no further reading
+ *     is required.
+ *   - The failure banner is denser. We list the failed validations
+ *     first (these are the *authoritative* outcomes from the engine)
+ *     and then, if any patterns matched, the top 2-3 fixes from the
+ *     error-pattern detector. The patterns are **supporting** info,
+ *     not the source of truth — that's why they go below.
+ *   - The dismiss button is a small × in the top-right corner. It
+ *     doesn't reset the validation state; it just hides the banner
+ *     so the user can re-read the report without it.
+ */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+  position: relative;
+}
+
+.success {
+  background-color: var(--color-success-soft);
+  border-color: var(--color-success);
+  color: var(--color-text);
+}
+
+.failure {
+  background-color: var(--color-error-soft);
+  border-color: var(--color-error);
+  color: var(--color-text);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+}
+
+.success .icon {
+  background-color: var(--color-success);
+  color: var(--color-success-fg, white);
+}
+
+.failure .icon {
+  background-color: var(--color-error);
+  color: var(--color-error-fg, white);
+}
+
+.body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.dismiss {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.dismiss:hover,
+.dismiss:focus-visible {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+  outline: none;
+}
+
+.failuresList,
+.patternsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.failureCard,
+.patternCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.failureMessage,
+.patternMessage {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.failureSuggestions,
+.patternFix {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.suggestionItem {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.suggestionItem::before {
+  content: '• ';
+  color: var(--color-text-muted);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--color-border);
+  border: none;
+  margin: 0;
+}

@@ -1,0 +1,331 @@
+/*
+ * ExerciseView — the main "play" page.
+ *
+ * Layout:
+ *   ┌─────────────────────────────────────────────────────────────┐
+ *   │  Header: title + type badge + difficulty + tags             │
+ *   ├─────────────────────────────────────────────────────────────┤
+ *   │  Prompt callout (exercise text)                              │
+ *   ├─────────────────────────────────────────────────────────────┤
+ *   │  Toolbar: Run | Check | Reset                                │
+ *   ├─────────────────────────────────────────────────────────────┤
+ *   │  SqlEditor                                                  │
+ *   ├─────────────────────────────────────────────────────────────┤
+ *   │  Results / Error banner / Validation report                  │
+ *   └─────────────────────────────────────────────────────────────┘
+ *
+ * The view is **stateful** but most state lives in the `useExercise`
+ * hook. The component itself owns only the editor's local text.
+ */
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.breadcrumbLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover,
+.breadcrumbLink:focus-visible {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  height: 22px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.difficulty {
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  height: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.promptCallout {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-primary-soft);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.editorSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.toolbarGroup {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.secondaryButton,
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.primaryButton {
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+}
+
+.primaryButton:hover:not(:disabled),
+.primaryButton:focus-visible:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  outline: none;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.secondaryButton:hover:not(:disabled),
+.secondaryButton:focus-visible:not(:disabled) {
+  background-color: var(--color-success);
+  filter: brightness(0.95);
+  outline: none;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ghostButton {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.ghostButton:hover,
+.ghostButton:focus-visible {
+  background-color: var(--color-surface-hover);
+  outline: none;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  height: 22px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.statusBadge[data-status='starting'] {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.statusBadge[data-status='running'] {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.statusBadge[data-status='ready'] {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.statusBadge[data-status='failed'] {
+  background-color: var(--color-danger-soft, var(--color-warning-soft));
+  color: var(--color-danger, var(--color-warning));
+}
+
+.statusBadge[data-status='idle'] {
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.resultsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.validationReport {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.validationReport[data-all-passed='true'] {
+  border-color: var(--color-success);
+}
+
+.validationReport[data-all-passed='false'] {
+  border-color: var(--color-warning);
+}
+
+.validationHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.validationRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.validationRow:first-of-type {
+  border-top: none;
+}
+
+.validationIcon {
+  font-size: 1.1em;
+}
+
+.validationIcon[data-passed='true'] {
+  color: var(--color-success);
+}
+
+.validationIcon[data-passed='false'] {
+  color: var(--color-warning);
+}
+
+.validationBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.validationMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.validationStrategy {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono, monospace);
+}
+
+.loadingShell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}

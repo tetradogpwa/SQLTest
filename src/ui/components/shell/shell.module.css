@@ -1,0 +1,425 @@
+/*
+ * CSS Module for the top-level application shell.
+ *
+ * Covers:
+ *   - The outer `.app` flex container
+ *   - The top bar (logo, action cluster, user menu)
+ *   - The main content area
+ *   - The collapsible side bar
+ *   - A small autosave / worker status pill in the top bar
+ */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--main-bg);
+  color: var(--color-text);
+}
+
+.appBody {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.appMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--layout-content-padding);
+  gap: var(--space-4);
+  max-width: var(--layout-max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.appMain > * {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ *  TopBar                                                            *
+ * ------------------------------------------------------------------ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-topbar);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--layout-topbar-height);
+  padding: 0 var(--space-4);
+  background-color: var(--topbar-bg);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.topbarLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.brandLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brandLink:hover,
+.brandLink:focus-visible {
+  background-color: var(--color-surface-hover);
+  text-decoration: none;
+}
+
+.brandLogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-primary-fg);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.02em;
+}
+
+.brandName {
+  font-size: var(--font-size-md);
+}
+
+/* Action buttons (icon buttons in the top bar) */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.iconButton[aria-pressed='true'] {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  height: 28px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.statusPill[data-state='online'] {
+  color: var(--color-success);
+  background-color: var(--color-success-soft);
+  border-color: transparent;
+}
+
+.statusPill[data-state='offline'] {
+  color: var(--color-error);
+  background-color: var(--color-error-soft);
+  border-color: transparent;
+}
+
+.statusPill[data-state='saving'] {
+  color: var(--color-warning);
+  background-color: var(--color-warning-soft);
+  border-color: transparent;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+  display: inline-block;
+}
+
+.languageSelect {
+  height: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.userMenu {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 36px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.userAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Sidebar                                                           *
+ * ------------------------------------------------------------------ */
+
+.sidebar {
+  width: var(--layout-sidebar-width);
+  flex: 0 0 var(--layout-sidebar-width);
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: width var(--transition-base), padding var(--transition-base);
+  overflow-y: auto;
+}
+
+.sidebar[data-collapsed='true'] {
+  width: 64px;
+  flex-basis: 64px;
+  padding: var(--space-4) var(--space-1);
+}
+
+.sidebar[data-collapsed='true'] .sidebarLabel,
+.sidebar[data-collapsed='true'] .sidebarProgressText {
+  display: none;
+}
+
+/*
+ * Drawer variant is hidden on desktop; only the rail occupies the
+ * AppShell flex layout. Without this rule, both Sidebar instances
+ * render side-by-side with identical content.
+ */
+.sidebar[data-variant='drawer'] {
+  display: none;
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebarItem {
+  margin: 0;
+  padding: 0;
+}
+
+.sidebarLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebarLink:hover,
+.sidebarLink:focus-visible {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.sidebarLink[aria-current='page'],
+.sidebarLinkActive {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.sidebarLink svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.sidebarProgress {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.sidebarProgressTitle {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sidebarProgressBar {
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.sidebarProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  transition: width var(--transition-slow);
+}
+
+.sidebarProgressText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Mobile sidebar — the rail disappears and the drawer becomes a slide-over. */
+@media (max-width: 768px) {
+  .appBody {
+    flex-direction: column;
+  }
+
+  .sidebar[data-variant='rail'] {
+    display: none;
+  }
+
+  .sidebar[data-variant='drawer'] {
+    display: flex;
+    position: fixed;
+    inset: var(--layout-topbar-height) auto 0 0;
+    width: 80vw;
+    max-width: 320px;
+    z-index: var(--z-dropdown);
+    transform: translateX(-100%);
+    transition: transform var(--transition-base);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar[data-variant='drawer'][data-mobile-open='true'] {
+    transform: translateX(0);
+  }
+
+  .sidebar[data-variant='drawer'][data-collapsed='true'] {
+    width: 80vw;
+    max-width: 320px;
+  }
+}
+
+.sidebarBackdrop {
+  position: fixed;
+  inset: var(--layout-topbar-height) 0 0 0;
+  background-color: rgb(0 0 0 / 0.4);
+  z-index: calc(var(--z-dropdown) - 1);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebarBackdrop[data-visible='true'] {
+    display: block;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Page container                                                    *
+ * ------------------------------------------------------------------ */
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pageHeader h1 {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.pageHeader p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+}
+
+.pageBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Visually hidden label for screen readers */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,32 @@
+/*
+ * CoursePage layout.
+ *
+ * Two-column grid: fixed-width sidebar + flexible content. The grid
+ * stretches to fill the height of the AppShell's main area, so the
+ * sidebar can scroll independently.
+ */
+
+.shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 0;
+  height: calc(100vh - var(--topbar-height, 56px));
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.main {
+  overflow-y: auto;
+  background-color: var(--color-bg);
+}
+
+@media (max-width: 768px) {
+  .shell {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .main {
+    overflow-y: visible;
+  }
+}

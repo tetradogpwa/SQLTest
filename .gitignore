@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+*.tsbuildinfo.*
+
+# Vite
+.vite/
+.cache/
+.parcel-cache/
+dev-dist/
+
+# Tests / coverage
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files (keep .env.example if it exists)
+.env
+.env.*
+!.env.example
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# OS noise
+ehthumbs.db
+Spotlight-V100/
+.Trashes
+.directory
+
+# Misc
+*.tgz
+.eslintcache
+.cache-loader
+
+# Public assets are committed (wa-sqlite WASM is synced via scripts/sync-wa-sqlite.mjs).
+# Do NOT ignore public/wa-sqlite*.wasm on purpose.
+
+# Scratch / temp
+tmp/
+temp/
+*.bak
+*.tmp

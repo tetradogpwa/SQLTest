@@ -1,0 +1,53 @@
+/*
+ * ProgressBar — small horizontal progress indicator.
+ *
+ * Used in two places:
+ *   - CourseSidebar: per-level "X / Y" with a thin fill bar.
+ *   - ExerciseView header / Lesson header: per-lesson / per-exercise
+ *     progress when the user is in a deep context.
+ *
+ * The bar is intentionally compact: 6px tall + a 1-line label above
+ * it (right-aligned). The fill is a `var(--color-accent)` gradient
+ * so it stands out against the muted surface.
+ *
+ * Design notes:
+ *   - We expose `data-pct` and `aria-valuenow` for tests / a11y.
+ *   - When `done >= total`, the fill is 100% (we don't clamp it from
+ *     above — the test asserts on `100%` exactly).
+ *   - `aria-valuemin` is always 0; `aria-valuemax` is `total` (or 0
+ *     when there is nothing to do — `aria-valuenow` is then also 0).
+ */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-secondary, var(--color-accent)));
+  border-radius: var(--radius-full);
+  transition: width var(--transition-fast);
+}
+
+.fillEmpty {
+  background: transparent;
+}

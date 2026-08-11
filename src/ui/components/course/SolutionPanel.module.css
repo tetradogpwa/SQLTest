@@ -1,0 +1,92 @@
+/*
+ * SolutionPanel — collapsible solution reveal.
+ *
+ * Two states:
+ *
+ *   1. Collapsed (revealed === false): just a "Ver solución" button.
+ *   2. Revealed (revealed === true): the solution SQL in a code block
+ *      and the explanation text below.
+ *
+ * Design notes:
+ *   - The solution SQL is rendered inside a `<pre><code>` element so
+ *     that long queries wrap consistently across browsers (the
+ *     default whitespace handling is preserved with `pre-wrap`).
+ *   - The reveal button uses a ghost-style border so it doesn't fight
+ *     with the primary "Comprobar" / "Ejecutar" buttons above.
+ *   - We deliberately don't *render* a header for the panel — the
+ *     reveal button itself is the affordance. Keeps the UI calm
+ *     until the user asks for help.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.revealButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  background-color: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background-color var(--transition-fast);
+}
+
+.revealButton:hover,
+.revealButton:focus-visible {
+  background-color: var(--color-surface-hover);
+  outline: none;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sqlBlock {
+  margin: 0;
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.explanation {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.explanationMuted {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-3) 0;
+}

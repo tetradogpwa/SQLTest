@@ -1,0 +1,39 @@
+/*
+ * SqlEditor + related styles.
+ */
+
+.editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 6px);
+  overflow: hidden;
+  background-color: var(--color-bg-elevated);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+}
+
+.editor :global(.cm-editor) {
+  height: 100%;
+  outline: none;
+}
+
+.editor :global(.cm-editor.cm-focused) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.editor :global(.cm-editor .cm-content) {
+  padding: 0.5rem 0;
+}
+
+.editor[data-placeholder]:not(:focus-within)::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0.5rem;
+  left: calc(0.5rem + 2ch);
+  color: var(--color-text-subtle);
+  pointer-events: none;
+  font-style: italic;
+  opacity: 0.5;
+}

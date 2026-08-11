@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es" data-theme="auto">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0ea5e9" />
+    <title>SQL Academy</title>
+    <script>
+      // Synchronous theme bootstrap. Runs before any stylesheet is
+      // applied so `<html data-theme>` is correct on the very first
+      // paint. The full React theme logic lives in
+      // `src/ui/components/shell/theme-provider.tsx`.
+      (function () {
+        try {
+          var theme = localStorage.getItem('sql-academy:theme');
+          if (theme !== 'light' && theme !== 'dark' && theme !== 'auto') {
+            theme = 'auto';
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+          var prefersLight =
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: light)').matches;
+          var resolved = theme === 'auto' ? (prefersLight ? 'light' : 'dark') : theme;
+          document.documentElement.setAttribute('data-resolved-theme', resolved);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'auto');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
