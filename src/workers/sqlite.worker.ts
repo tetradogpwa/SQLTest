@@ -348,6 +348,10 @@ const api = {
     ensureReady()
     return dbapi!.deleteUserDatabase(dbId)
   },
+  createUserDatabase: (name: string) => {
+    ensureReady()
+    return dbapi!.createUserDatabase(name)
+  },
 }
 
 function ensureReady(): void {

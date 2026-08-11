@@ -19,6 +19,50 @@ import { loadHarness, makeDb, type Harness } from '../helpers/wa-sqlite-harness'
 
 const DB_FILENAME = 'source.db'
 
+/**
+ * Return the bytes of a minimal valid SQLite database.
+ *
+ * The export pipeline runs `VACUUM INTO` which requires a live
+ * connection, so we build the DB via `makeDb` (which opens one),
+ * export it, and close. The result is a few KB of real SQLite bytes
+ * that pass the magic-header check in `ImportExportManager.import`.
+ *
+ * We cache the result across calls within a single test run because
+ * building a DB + exporting it is relatively expensive (~50 ms in
+ * the test harness).
+ */
+let cachedValidBytes: Uint8Array | null = null
+async function validSqliteBytes(): Promise<Uint8Array> {
+  if (cachedValidBytes) return cachedValidBytes
+  const localHarness = await loadHarness()
+  try {
+    const db = await makeDb(localHarness, 'tiny.db', 'CREATE TABLE t(x INTEGER);')
+    const vfsIo = new MemoryVfsIO(localHarness.vfs)
+    const localDbs = new DatabaseManager(localHarness.sqlite3)
+    localDbs.configure({ vfsName: localHarness.vfs.name, capability: 'memory' })
+    // The file already exists from `makeDb`; just open it on the
+    // same VFS through our own DatabaseManager instance so we can
+    // feed it to the export pipeline.
+    await localDbs.open(1, 'tiny.db', 'readwrite')
+    const localIo = new ImportExportManager({
+      dbs: localDbs,
+      snapshots: null,
+      schema: null,
+      sqlite3: localHarness.sqlite3,
+      io: vfsIo,
+    })
+    const bytes = await localIo.export(1)
+    await localHarness.close(db)
+    await localDbs.close(1)
+    cachedValidBytes = bytes
+    return bytes
+  } finally {
+    // The harness loads a heavy WASM; the next call to
+    // `loadHarness()` would skip it because the harness caches
+    // itself across calls.
+  }
+}
+
 describe('ImportExportManager — round-trip and bookkeeping', () => {
   let harness: Harness
   let dbs: DatabaseManager
@@ -26,6 +70,9 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
 
   beforeAll(async () => {
     harness = await loadHarness()
+    // Pre-warm the cache so the first test does not pay the
+    // makeDb + export + close cost.
+    await validSqliteBytes()
   }, 60_000)
 
   beforeEach(() => {
@@ -131,8 +178,8 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
   }, 10_000)
 
   it('import assigns a unique dbId that does not collide with manual opens', async () => {
-    const r1 = await io.import(new Uint8Array(16), 'first')
-    const r2 = await io.import(new Uint8Array(16), 'second')
+    const r1 = await io.import(await validSqliteBytes(), 'first')
+    const r2 = await io.import(await validSqliteBytes(), 'second')
     expect(r1.dbId).not.toBe(r2.dbId)
     expect(dbs.has(r1.dbId)).toBe(true)
     expect(dbs.has(r2.dbId)).toBe(true)
@@ -143,9 +190,9 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
    * ------------------------------------------------------------------ */
 
   it('listUserDatabases() reports every imported file', async () => {
-    await io.import(new Uint8Array(16), 'a')
-    await io.import(new Uint8Array(16), 'b')
-    await io.import(new Uint8Array(16), 'c')
+    await io.import(await validSqliteBytes(), 'a')
+    await io.import(await validSqliteBytes(), 'b')
+    await io.import(await validSqliteBytes(), 'c')
 
     const list = await io.listUserDatabases()
     expect(list.map((u) => u.name).sort()).toEqual(['a', 'b', 'c'])
@@ -165,7 +212,7 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
       size: 42,
       data: new ArrayBuffer(42),
     })
-    await io.import(new Uint8Array(16), 'tracked')
+    await io.import(await validSqliteBytes(), 'tracked')
     const list = await io.listUserDatabases()
     expect(list.map((u) => u.name)).toEqual(['tracked'])
   }, 10_000)
@@ -175,7 +222,7 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
    * ------------------------------------------------------------------ */
 
   it('deleteUserDatabase() removes the file and forgets the mapping', async () => {
-    const r = await io.import(new Uint8Array(16), 'doomed')
+    const r = await io.import(await validSqliteBytes(), 'doomed')
     expect(harness.vfs.mapNameToFile.has('user/doomed.db')).toBe(true)
     await io.deleteUserDatabase(r.dbId)
     expect(harness.vfs.mapNameToFile.has('user/doomed.db')).toBe(false)
@@ -197,7 +244,7 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
     expect(harness.vfs.mapNameToFile.has(`.snapshots/10/${meta.id}.db`)).toBe(true)
 
     // 2. Re-import through the same manager (different dbId).
-    const r = await io.import(new Uint8Array(16), 'temp')
+    const r = await io.import(await validSqliteBytes(), 'temp')
     void r
 
     // 3. Re-create the ImportExportManager so the snapshots of dbId 10
@@ -231,7 +278,7 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
   }, 10_000)
 
   it('import sanitises the target name (no path traversal)', async () => {
-    const r = await io.import(new Uint8Array(16), '../etc/passwd')
+    const r = await io.import(await validSqliteBytes(), '../etc/passwd')
     const list = await io.listUserDatabases()
     // The resulting file is inside `user/`, never outside it.
     const u = list.find((x) => x.dbId === r.dbId)!
@@ -240,9 +287,9 @@ describe('ImportExportManager — round-trip and bookkeeping', () => {
   }, 10_000)
 
   it('import picks a free name when the target already exists', async () => {
-    await io.import(new Uint8Array(16), 'dup')
-    await io.import(new Uint8Array(16), 'dup')
-    await io.import(new Uint8Array(16), 'dup')
+    await io.import(await validSqliteBytes(), 'dup')
+    await io.import(await validSqliteBytes(), 'dup')
+    await io.import(await validSqliteBytes(), 'dup')
     const list = await io.listUserDatabases()
     const names = list.map((u) => u.name).sort()
     // 3 distinct entries, all derived from 'dup'.

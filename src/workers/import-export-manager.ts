@@ -57,6 +57,47 @@ export class ImportError extends Error {
   }
 }
 
+/**
+ * Thrown when the imported file is not a valid SQLite database.
+ *
+ * The `ImportError` class wraps the raw wa-sqlite error (typically
+ * "sqlite3_open_v2" or a SQLite error code), which is not actionable
+ * for the user. We intercept early, before any byte is written to
+ * OPFS, and throw a specific error with a clear message.
+ */
+export class InvalidSqliteFileError extends Error {
+  readonly filename: string
+  readonly sizeBytes: number
+  constructor(filename: string, sizeBytes: number) {
+    super(
+      `The file is not a valid SQLite database (expected the 16-byte ` +
+        `"SQLite format 3\\0" header at offset 0; got ${sizeBytes} bytes).`,
+    )
+    this.name = 'InvalidSqliteFileError'
+    this.filename = filename
+    this.sizeBytes = sizeBytes
+  }
+}
+
+/**
+ * Every valid SQLite 3.x database file starts with this 16-byte
+ * header (the magic string + the page size). If the file we are
+ * asked to import does not match, we refuse to write it to the
+ * VFS and surface a clear error to the user.
+ *
+ * See https://www.sqlite.org/fileformat.html#magic_header_string
+ */
+const SQLITE_MAGIC = 'SQLite format 3'
+const SQLITE_HEADER_SIZE = 16
+
+export function isValidSqliteFile(bytes: Uint8Array): boolean {
+  if (bytes.byteLength < SQLITE_HEADER_SIZE) return false
+  for (let i = 0; i < SQLITE_MAGIC.length; i += 1) {
+    if (bytes[i] !== SQLITE_MAGIC.charCodeAt(i)) return false
+  }
+  return true
+}
+
 export class ExportError extends Error {
   constructor(dbId: number, cause: unknown) {
     const msg = cause instanceof Error ? cause.message : String(cause)
@@ -156,6 +197,14 @@ export class ImportExportManager {
     // collisions get unique entries in `listUserDatabases()` (e.g.
     // `dup`, `dup-1`, `dup-2`).
     const finalName = filenameToName(finalFilename)
+
+    // 0. Validate the magic header. Refuses to write garbage to the
+    //    VFS (where it would clutter the user's listing) and replaces
+    //    the cryptic wa-sqlite "sqlite3_open_v2" error with a clear
+    //    one. Cheap: 16 bytes compared.
+    if (!isValidSqliteFile(bytes)) {
+      throw new InvalidSqliteFileError(finalFilename, bytes.byteLength)
+    }
 
     // 1. Write the bytes to the VFS.
     try {
