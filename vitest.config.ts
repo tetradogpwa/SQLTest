@@ -60,7 +60,30 @@ export default defineConfig({
         'src/workers/sw.ts',
         'src/workers/sqlite.worker.ts',
         'src/workers/wa-sqlite.d.ts',
+        // The public `dbapi.ts` is a thin orchestrator whose real
+        // coverage comes from the Worker integration tests in
+        // `pocs/engine/poc-1` and `poc-2` (the WASM-based
+        // round-trip). Vitest's mocked `DBApi` doesn't exercise
+        // the meaningful branches.
+        'src/workers/dbapi.ts',
+        // Type-only modules have no runtime to cover.
+        'src/workers/types.ts',
+        'src/workers/serialization-helper.ts',
       ],
+      // Coverage thresholds (T7 of PROJECT_PLAN.md). The build /
+      // CI fails when any metric falls below its target. The
+      // targets match the project's current coverage floor
+      // (89% lines, 79% branches, 83% functions) with a small
+      // buffer so day-to-day work doesn't trip the gate. New
+      // files are pulled in at their real coverage.
+      thresholds: {
+        lines: 88,
+        branches: 78,
+        functions: 80,
+        statements: 88,
+      },
+      enabled: true,
+      reportOnFailure: true,
     },
   },
 })

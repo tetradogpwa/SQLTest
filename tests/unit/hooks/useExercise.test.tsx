@@ -11,7 +11,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, waitFor } from '@testing-library/react'
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 import { useExercise, type UseExerciseResult } from '../../../src/hooks/useExercise'
 import { mkApiMock } from '../../helpers/dbapi-mock'
@@ -294,16 +294,185 @@ describe('useExercise', () => {
     expect(holder.state!.status).toBe('ready')
   })
 
-  it('destroy() on unmount calls the runner cleanup (best-effort)', async () => {
+  it('destroy() called directly invokes the runner cleanup', async () => {
     const api = mkApiMock()
-    const { unmount } = render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
     await waitFor(() => expect(holder.state?.status).toBe('ready'))
-    // unmount triggers the cleanup effect which calls runner.destroy().
-    unmount()
-    // We don't assert on close() because the runner is allowed to be
-    // best-effort; the test merely verifies the unmount path doesn't
-    // throw. (The previous test already validated reset; destroy is
-    // symmetrical.)
-    expect(true).toBe(true)
+    // Calling `destroy()` from the hook should call `runner.destroy()`
+    // synchronously. After that, the runner is in `destroyed` state
+    // and any further call throws.
+    await act(async () => {
+      holder.state!.destroy()
+    })
+    expect(() => holder.state!.runner.runUserSql('SELECT 1')).rejects.toThrow(/destroyed/i)
+  })
+
+  it('run() surfaces a Comlink-style thrown error (worker died)', async () => {
+    const api = mkApiMock({
+      exec: async () => {
+        // The runner.runUserSql awaits `api.exec(...)`; if the
+        // promise rejects, the hook catches + maps to UNEXPECTED.
+        throw {
+          code: 'WORKER_TERMINATED',
+          message: 'Worker died',
+          translatedMessage: 'El motor SQL se ha interrumpido.',
+        }
+      },
+    })
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    await act(async () => {
+      await holder.state!.run('SELECT 1')
+    })
+    expect(holder.state!.lastError).not.toBeNull()
+    expect(holder.state!.lastError?.code).toBe('WORKER_TERMINATED')
+    // Status falls back to `failed` when the run throws (the runner
+    // itself does not recover).
+    expect(holder.state!.status).toBe('failed')
+  })
+
+  it('run() surfaces a native Error thrown synchronously', async () => {
+    const api = mkApiMock({
+      exec: async () => {
+        throw new Error('boom')
+      },
+    })
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    await act(async () => {
+      await holder.state!.run('SELECT 1')
+    })
+    expect(holder.state!.lastError).not.toBeNull()
+    expect(holder.state!.lastError?.code).toBe('UNEXPECTED')
+    expect(holder.state!.lastError?.message).toBe('boom')
+  })
+
+  it('check() with a thrown error builds a defensive failure report (never throws)', async () => {
+    const api = mkApiMock()
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    // Destroy the runner directly so the next `check()` call throws
+    // `ExerciseRunner.destroyed: ...`. The hook's catch arm wraps
+    // the error into a synthetic `ValidationReport`.
+    await act(async () => {
+      holder.state!.runner.destroy()
+    })
+    let report
+    await act(async () => {
+      report = await holder.state!.check()
+    })
+    expect(report).toBeDefined()
+    expect(report!.allPassed).toBe(false)
+    expect(report!.failedCount).toBe(1)
+    expect(report!.results[0]?.passed).toBe(false)
+    // The error is also surfaced via `lastError`.
+    expect(holder.state!.lastError).not.toBeNull()
+  })
+
+  it('start() failure transitions the hook to `failed` and surfaces a SerializedError', async () => {
+    // `api.open` rejects → runner.start() throws → the useEffect
+    // catch arm runs and sets status to 'failed' + lastError. The
+    // runner wraps the error message before the hook sees it, so
+    // we just assert that *some* error is surfaced.
+    const api = mkApiMock({
+      open: async () => {
+        throw new Error('OPFS unavailable')
+      },
+    })
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('failed'))
+    expect(holder.state?.lastError).not.toBeNull()
+    expect(holder.state?.lastError?.code).toBe('UNEXPECTED')
+    expect(holder.state?.lastError?.message).toMatch(/OPFS|abrir|runner/i)
+  })
+
+  it('revealNextHint() returns null when no hint is unlocked (attempts=0)', async () => {
+    // The seed hints are gated by `after-failure` / `after-N-failures`
+    // — with attempts=0, none are unlocked yet. The function
+    // returns null and `hintsRevealed` stays at 0.
+    const api = mkApiMock()
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    const hint = holder.state!.revealNextHint()
+    expect(hint).toBeNull()
+    expect(holder.state!.hintsRevealed).toBe(0)
+  })
+
+  it('revealNextHint() does not increment the counter when returning null', async () => {
+    const api = mkApiMock()
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    for (let i = 0; i < 5; i += 1) {
+      void holder.state!.revealNextHint()
+    }
+    expect(holder.state!.hintsRevealed).toBe(0)
+  })
+
+  it('revealSolution() sets a placeholder when the exercise has no solution', async () => {
+    // Pick an exercise that does have a solution (the seed). To
+    // test the no-solution branch, we patch the exercise object
+    // through the resolved context by mounting a harness that
+    // looks up an unknown id (the placeholder returns no solution).
+    const api = mkApiMock()
+    function NoSolutionHarness(): ReactNode {
+      const state = useExercise('nonexistent-exercise-id', api, 'memory')
+      useEffect(() => {
+        holder.state = state
+      })
+      return null
+    }
+    render(<NoSolutionHarness />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    await act(async () => {
+      await holder.state!.revealSolution()
+    })
+    expect(holder.state!.solution).not.toBeNull()
+    expect(holder.state!.solution?.sql).toBe('')
+    expect(holder.state!.solution?.explanation).toMatch(/no tiene una solución/i)
+  })
+
+  it('does NOT bump attempts on a successful check()', async () => {
+    // The "marks the exercise completed" test already covers
+    // allPassed=true; here we explicitly assert that attempts stays
+    // at 0 so we have a focused test for that branch.
+    const api = mkApiMock({
+      exec: async () => ({
+        ok: true,
+        columns: ['id', 'titulo', 'anio_publicacion'],
+        rows: [[1, 'A', 2000]],
+        executionMs: 1,
+        statementKind: 'select',
+      }),
+      schema: async () => ({
+        tables: [
+          {
+            name: 'libros',
+            columns: [
+              { name: 'id', type: 'INTEGER', nullable: false, defaultValue: null, primaryKeyPosition: 1 },
+              { name: 'titulo', type: 'TEXT', nullable: false, defaultValue: null, primaryKeyPosition: 0 },
+              { name: 'anio_publicacion', type: 'INTEGER', nullable: true, defaultValue: null, primaryKeyPosition: 0 },
+            ],
+            primaryKey: ['id'],
+            foreignKeys: [],
+            uniqueConstraints: [],
+            checkConstraints: [],
+            rowCountEstimate: 0,
+            createSql: '',
+          },
+        ],
+        views: [],
+        indexes: [],
+        triggers: [],
+      }),
+    })
+    render(<HookHarness exerciseId="L1.1-e1" api={api} />)
+    await waitFor(() => expect(holder.state?.status).toBe('ready'))
+    await act(async () => {
+      await holder.state!.run('SELECT id, titulo, anio_publicacion FROM libros ORDER BY id ASC')
+    })
+    await act(async () => {
+      await holder.state!.check()
+    })
+    expect(holder.state!.attempts).toBe(0)
   })
 })

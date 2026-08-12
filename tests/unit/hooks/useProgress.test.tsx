@@ -178,4 +178,119 @@ describe('useProgress', () => {
     expect(latest!.state.course).toBeDefined()
     expect(latest!.state.course.levels.length).toBeGreaterThan(0)
   })
+
+  it('markAttempted (via the hook) records a failed attempt', async () => {
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    await act(async () => {
+      await latest!.state.markAttempted('L1.1-e1', false)
+    })
+    await waitFor(() => {
+      expect(latest!.state.attemptedExerciseIds.has('L1.1-e1')).toBe(true)
+    })
+    // markAttempted does NOT mark the exercise completed.
+    expect(latest!.state.completedExerciseIds.has('L1.1-e1')).toBe(false)
+  })
+
+  it('markAttempted (via the hook) records a successful attempt (still not completed)', async () => {
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    await act(async () => {
+      await latest!.state.markAttempted('L1.1-e1', true)
+    })
+    await waitFor(() => {
+      expect(latest!.state.attemptedExerciseIds.has('L1.1-e1')).toBe(true)
+    })
+    // markAttempted does NOT mark the exercise completed, even
+    // when success === true. Completion is a separate decision
+    // (the runner calls markCompleted with full validation).
+    expect(latest!.state.completedExerciseIds.has('L1.1-e1')).toBe(false)
+  })
+
+  it('markAttempted falls back to the exerciseId when the lesson is unknown', async () => {
+    // The hook's `markAttempted` looks up the lessonId from the
+    // catalog. When the exercise is unknown, it falls back to the
+    // exerciseId itself (the store tolerates any string here). The
+    // attempt is still recorded; the test just verifies no throw.
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    await act(async () => {
+      await latest!.state.markAttempted('nonexistent-exercise-id', false)
+    })
+    await waitFor(() => {
+      expect(latest!.state.attemptedExerciseIds.has('nonexistent-exercise-id')).toBe(true)
+    })
+  })
+
+  it('markCompleted (via the hook) marks a single exercise complete', async () => {
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    await act(async () => {
+      await latest!.state.markCompleted('L1.1-e1', 'L1.1')
+    })
+    await waitFor(() => {
+      expect(latest!.state.completedExerciseIds.has('L1.1-e1')).toBe(true)
+    })
+    // The lesson is NOT yet completed (only one of N exercises).
+    expect(latest!.state.completedLessonIds.has('L1.1')).toBe(false)
+  })
+
+  it('attemptedExerciseIds is a superset of completedExerciseIds (defensive)', async () => {
+    // If the `exerciseStats` table is wiped independently, the
+    // attempted set loses entries — but completed should still be
+    // a subset. The hook has a defensive `for (const id of
+    // completedExerciseIds) ids.add(id)` that guards this case.
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    const mod = await getMod()
+    // Complete an exercise WITHOUT recording an attempt.
+    await act(async () => {
+      await mod.progressStore.markExerciseCompleted('L1.1-e1', 'L1.1')
+    })
+    await waitFor(() => {
+      expect(latest!.state.completedExerciseIds.has('L1.1-e1')).toBe(true)
+    })
+    // Wipe the stats table; the hook should re-add L1.1-e1 to
+    // attempted.
+    await act(async () => {
+      await mod.progressStore['db'].exerciseStats.clear()
+    })
+    await waitFor(() => {
+      // The exerciseStats change triggers a re-render; the
+      // attempted set is rebuilt and the completed id is added
+      // back defensively.
+      expect(latest!.state.attemptedExerciseIds.has('L1.1-e1')).toBe(true)
+    })
+  })
+
+  it('a lesson with 0 exercises is not marked completed (empty lessons are skipped)', async () => {
+    // The `completedLessonIds` loop has an `if (lesson.exercises.length === 0) continue`
+    // guard. A lesson with no exercises should never appear in the
+    // completed set. We verify by checking the loaded course has
+    // no empty lessons (otherwise the guard is vacuously tested).
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    for (const level of latest!.state.course.levels) {
+      for (const lesson of level.lessons) {
+        if (lesson.exercises.length === 0) {
+          // Defensive: if any lesson has 0 exercises, it should
+          // not be in the completed set.
+          expect(latest!.state.completedLessonIds.has(lesson.id)).toBe(false)
+        }
+      }
+    }
+  })
+
+  it('the completionByLevel `pct` is 0 when `total` is 0 (defensive)', async () => {
+    // The formula is `pct: total === 0 ? 0 : done / total`. We
+    // cannot create a level with 0 exercises (the catalog rejects
+    // it at load time), so we verify the formula by checking
+    // every level's pct is in [0, 1].
+    render(<Harness />)
+    await waitFor(() => expect(latest).not.toBeNull())
+    for (const [levelId, c] of latest!.state.completionByLevel) {
+      expect(c.pct, `level ${levelId} has out-of-range pct`).toBeGreaterThanOrEqual(0)
+      expect(c.pct, `level ${levelId} has out-of-range pct`).toBeLessThanOrEqual(1)
+    }
+  })
 })

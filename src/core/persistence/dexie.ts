@@ -59,6 +59,12 @@ export class SqlAcademyDB extends Dexie {
   snapshotMetadata!: Table<SnapshotMetadataRow, number>
   undoHistory!: Table<UndoHistoryRow, number>
   exerciseStats!: Table<ExerciseStatsRow, number>
+  /**
+   * Per-lesson study-DB selection. The primary key is the
+   * `studyDb:<lessonId>` string (see `studyDbService.studyDbSelectionKey`).
+   * The value is the user DB id (`db-<n>`).
+   */
+  lessonStudyDb!: Table<{ key: string; dbId: string; updatedAt: number }, string>
 
   constructor(name = 'sql-academy') {
     super(name)
@@ -77,6 +83,11 @@ export class SqlAcademyDB extends Dexie {
       snapshotMetadata: '++id, [dbId+createdAt], dbId',
       undoHistory: '++id, [dbId+timestamp], dbId',
       exerciseStats: '++id, [exerciseId+timestamp], exerciseId, attemptType',
+    })
+    // v2: add the `lessonStudyDb` table. No migration of existing
+    // data — the table is fresh.
+    this.version(2).stores({
+      lessonStudyDb: 'key, updatedAt',
     })
   }
 }

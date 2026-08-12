@@ -51,6 +51,14 @@ export interface ExerciseRunnerOptions {
   /** ID aleatorio por mount (lo provee el Main Thread). */
   sessionId: string
   /**
+   * Optional `studyDbId`. When set, the runner uses the study DB
+   * (a persistent user DB) instead of creating a per-session
+   * working-copy. The seed is re-applied on `start()` and on
+   * `reset()`. The runner does NOT close or delete the study DB
+   * on `destroy()` — that is the user's data.
+   */
+  studyDbId?: number | null
+  /**
    * Strategies de validación. Si no se pasan, se usan los 11 por defecto
    * (sin `CustomStrategy`; añadirlo explícitamente si el ejercicio lo
    * requiere). El caller puede inyectar su propio `Validator` vía
@@ -141,6 +149,19 @@ export class ExerciseRunner {
   /** dbId de la solution-copy. */
   readonly solutionDbId: number
 
+  /**
+   * When set, the runner uses the study DB (a persistent user DB)
+   * instead of a per-session working-copy. The runner does NOT
+   * close or delete the study DB on `destroy()`. `null` means
+   * "use the default per-session working-copy".
+   */
+  readonly studyDbId: number | null
+
+  /** True when the runner is in "study mode" (using a study DB). */
+  get isStudyMode(): boolean {
+    return this.studyDbId !== null
+  }
+
   /** Última SQL ejecutada por el usuario (para `check()` sin argumentos). */
   private lastUserSql: string | null = null
 
@@ -155,6 +176,7 @@ export class ExerciseRunner {
     this.sessionId = opts.sessionId
     this.capability = opts.capability
     this.api = opts.api
+    this.studyDbId = opts.studyDbId ?? null
     const strategies = opts.strategies ?? [...defaultStrategies]
     this.validator = opts.validatorFactory
       ? opts.validatorFactory(strategies)
@@ -202,16 +224,40 @@ export class ExerciseRunner {
 
   /**
    * Inicializa el runner:
-   *   1. Abre la working-copy (la crea si no existe).
-   *   2. Si `exercise.lessonDbSeed` está definido y el runner está
-   *      en estado `fresh` (es decir, es la primera vez que se abre
-   *      este session), ejecuta el seed.
+   *   1. **Study mode** (when `studyDbId` is set): opens the user's
+   *      study DB and re-applies the seed. The runner does NOT close
+   *      the study DB on `destroy()` — that data is the user's.
+   *   2. **Default mode**: opens the working-copy (the per-session
+   *      copy) and, if the seed is defined and the runner is in
+   *      `fresh` state, applies it.
    *
    * Es idempotente: si ya está en estado `started`, no hace nada.
    */
   async start(): Promise<void> {
     this.ensureAlive()
     if (this.state === 'started') return
+
+    if (this.studyDbId !== null) {
+      // Study mode: open the user's DB. The seed is re-applied
+      // so the DB always starts in a known state. The runner
+      // does NOT close this DB on destroy().
+      const studyId = this.studyDbId
+      // The study DB is already open (the user opened it via
+      // the lesson page). We just need to apply the seed.
+      if (this.exercise.lessonDbSeed) {
+        try {
+          await this.api.exec(studyId, this.exercise.lessonDbSeed, {
+            timeoutMs: 5000,
+          })
+        } catch (e) {
+          throw new Error(
+            `ExerciseRunner.start: la siembra del study DB falló (${(e as Error).message})`,
+          )
+        }
+      }
+      this.state = 'started'
+      return
+    }
 
     try {
       await this.api.open(this.workingDbId, this.workingFilename, 'readwrite')
@@ -241,9 +287,27 @@ export class ExerciseRunner {
   /**
    * Descarta la working-copy y la recrea desde el seed. El Main Thread
    * puede llamar a esto cuando el alumno pulsa "Reiniciar ejercicio".
+   *
+   * **Study mode**: re-applies the seed to the study DB (the
+   * user's persistent data) without closing or deleting it.
    */
   async reset(): Promise<void> {
     this.ensureAlive()
+
+    if (this.studyDbId !== null) {
+      // Study mode: re-apply the seed to the user's study DB.
+      // The DB is already open (the user manages its lifecycle
+      // through the lesson page); we just re-seed it.
+      if (this.exercise.lessonDbSeed) {
+        await this.api.exec(this.studyDbId, this.exercise.lessonDbSeed, {
+          timeoutMs: 5000,
+        })
+      }
+      this.lastUserSql = null
+      this.lastUserResult = null
+      return
+    }
+
     try {
       await this.safeClose(this.workingDbId)
       try {

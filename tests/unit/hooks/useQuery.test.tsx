@@ -223,4 +223,85 @@ describe('useQuery', () => {
   it('exports MAX_HISTORY_ENTRIES = 10', () => {
     expect(MAX_HISTORY_ENTRIES).toBe(10)
   })
+
+  it('persists a successful run to queryHistory', async () => {
+    const api = makeFakeApi()
+    api.exec.mockResolvedValue({
+      ok: true,
+      columns: ['x'],
+      rows: [[1]],
+      executionMs: 3,
+      statementKind: 'select',
+    })
+    render(<Harness api={api} dbId={1} />)
+    await waitFor(() => expect(lastState()).toBeDefined())
+    await act(async () => {
+      await lastState().run('SELECT 1')
+    })
+    await waitFor(() => expect(lastState().result?.ok).toBe(true))
+    // The hook persists the entry; the live query should pick it
+    // up and surface it in `history`.
+    await waitFor(() => expect(lastState().history.length).toBe(1))
+    expect(lastState().history[0]?.sql).toBe('SELECT 1')
+    expect(lastState().history[0]?.success).toBe(true)
+  })
+
+  it('persists a failed run to queryHistory with the error message', async () => {
+    const api = makeFakeApi()
+    api.exec.mockResolvedValue({
+      ok: false,
+      error: {
+        code: 'SQLITE_ERROR',
+        message: 'no such table: foo',
+        translatedMessage: 'No existe la tabla `foo`',
+      },
+      executionMs: 1,
+      statementKind: 'select',
+    })
+    render(<Harness api={api} dbId={1} />)
+    await waitFor(() => expect(lastState()).toBeDefined())
+    await act(async () => {
+      await lastState().run('SELECT * FROM foo')
+    })
+    await waitFor(() => expect(lastState().error).not.toBeNull())
+    await waitFor(() => expect(lastState().history.length).toBe(1))
+    expect(lastState().history[0]?.sql).toBe('SELECT * FROM foo')
+    expect(lastState().history[0]?.success).toBe(false)
+    expect(lastState().history[0]?.errorMessage).toBe('no such table: foo')
+  })
+
+  it('captures Comlink rejections as a generic SerializedError (worker died)', async () => {
+    const api = makeFakeApi()
+    api.exec.mockRejectedValue(new Error('Worker terminated'))
+    render(<Harness api={api} dbId={1} />)
+    await waitFor(() => expect(lastState()).toBeDefined())
+    await act(async () => {
+      await lastState().run('SELECT 1')
+    })
+    await waitFor(() => expect(lastState().error).not.toBeNull())
+    expect(lastState().error?.code).toBe('WORKER_TERMINATED')
+    expect(lastState().error?.translatedMessage).toMatch(/interrumpido/i)
+    // A failed run is still persisted to history.
+    await waitFor(() => expect(lastState().history.length).toBe(1))
+    expect(lastState().history[0]?.success).toBe(false)
+  })
+
+  it('does NOT persist history when persistHistory: false', async () => {
+    const api = makeFakeApi()
+    api.exec.mockResolvedValue({
+      ok: true,
+      columns: ['x'],
+      rows: [[1]],
+      executionMs: 1,
+      statementKind: 'select',
+    })
+    render(<Harness api={api} dbId={1} />)
+    await waitFor(() => expect(lastState()).toBeDefined())
+    await act(async () => {
+      await lastState().run('SELECT 1', { persistHistory: false })
+    })
+    await waitFor(() => expect(lastState().result?.ok).toBe(true))
+    // The hook ran the query but did not append to history.
+    expect(lastState().history.length).toBe(0)
+  })
 })

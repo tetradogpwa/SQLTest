@@ -1,25 +1,18 @@
 /**
  * useQuery — run SQL against the active database and persist history.
  *
- * The hook owns three pieces of state:
+ * The hook is the React adapter over `queryRunnerService`. All
+ * decision logic (error normalisation, exec vs timeout race,
+ * failure-result construction) lives in the service; the hook
+ * owns the React state, the cancellation timer, and the Dexie
+ * history persistence.
  *
- *  - `result`: the latest `QueryResult` returned by the Worker. The
- *    hook does not *unpack* rows/columns — consumers iterate them
- *    directly. The result is `null` until the first run completes.
- *  - `loading`: `true` while a query is in flight. The UI uses this to
- *    disable the "Run" button and to render a spinner. The query is
- *    *cancellable* via the `cancel()` helper, which calls
- *    `api.cancel(dbId)` on the Worker (the Worker then interrupts on
- *    its next progress tick).
- *  - `error`: a normalised `SerializedError` when the query failed
- *    (and the Worker returned a structured error). Errors thrown by
- *    Comlink (e.g. the Worker died) are caught and translated to a
- *    generic `SerializedError` so the UI can show a consistent banner.
- *
- * History: every successful or failed run is appended to
- * `queryHistory.addEntry(...)`. The hook reads the latest 10 entries
- * via `useLiveQuery` so the panel updates in real time when other tabs
- * also write to history.
+ * State machine:
+ *  - `result`: latest `QueryResultShape` returned by the Worker
+ *    (or the synthetic failure shape). `null` until the first run.
+ *  - `loading`: `true` while a run is in flight.
+ *  - `error`: latest `SerializedError`, or `null`.
+ *  - `history`: the last 10 entries (live from Dexie).
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -28,32 +21,23 @@ import { useDatabase } from './useDatabase'
 import { queryHistory } from '../core/persistence'
 import { db as defaultDb } from '../core/persistence/dexie'
 import type { QueryHistory } from '../core/persistence'
-import type { SerializedError } from '../workers/types'
-
-/**
- * Local re-export of the worker's `QueryResult` shape. The Worker
- * returns a structured result with `ok`, `columns`, `rows`, `error`,
- * etc. — we forward it as-is so consumers can read everything they
- * need without a separate type.
- */
-export interface QueryResultShape {
-  ok: boolean
-  columns?: string[]
-  rows?: unknown[][]
-  rowsAffected?: number
-  lastInsertRowid?: number
-  truncated?: boolean
-  error?: SerializedError
-  executionMs: number
-  statementKind: string
-  statements?: ReadonlyArray<{ kind: string }>
-}
+import type { QueryResult, SerializedError } from '../workers/types'
+import {
+  buildFailureResult,
+  buildNotReadyError,
+  raceExecution,
+  toSerializedError,
+  type QueryResultShape,
+} from '../core/services/queryRunnerService'
 
 /** Maximum number of history entries the hook exposes. */
 export const MAX_HISTORY_ENTRIES = 10
 
-/** Stable empty array used as the initial value for `history`. */
-const EMPTY_HISTORY: ReadonlyArray<QueryHistory> = Object.freeze([])
+/** Re-export so consumers (and tests) keep the same import. */
+export type { QueryResultShape }
+
+/** Default timeout for a query, in milliseconds. */
+const DEFAULT_TIMEOUT_MS = 5_000
 
 /** Options accepted by `run()`. */
 export interface RunOptions {
@@ -90,30 +74,13 @@ export interface UseQueryResult {
   executionMs: number | null
 }
 
+/** Stable empty array used as the initial value for `history`. */
+const EMPTY_HISTORY: ReadonlyArray<QueryHistory> = Object.freeze([])
+
 interface InflightRun {
   cancelled: boolean
   startedAt: number
   timer: ReturnType<typeof setTimeout> | null
-}
-
-/**
- * Build a `SerializedError` from an arbitrary thrown value. Used when
- * the Worker died (Comlink rejects) and we don't have a structured
- * `QueryResult` to forward.
- */
-function toSerializedError(e: unknown): SerializedError {
-  if (e instanceof Error) {
-    return {
-      code: 'WORKER_TERMINATED',
-      message: e.message,
-      translatedMessage: 'El motor SQL se ha interrumpido. Por favor, reintenta.',
-    }
-  }
-  return {
-    code: 'UNKNOWN',
-    message: String(e),
-    translatedMessage: 'Error desconocido al ejecutar la consulta.',
-  }
 }
 
 export function useQuery(): UseQueryResult {
@@ -121,13 +88,12 @@ export function useQuery(): UseQueryResult {
   const [result, setResult] = useState<QueryResultShape | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<SerializedError | null>(null)
-  const [tick, setTick] = useState<number>(0) // forces a `useLiveQuery` re-read
+  const [tick, setTick] = useState<number>(0)
   const inflightRef = useRef<InflightRun | null>(null)
 
-  // `useLiveQuery` is reactive — any write to `queryHistory` (from
-  // this tab or another) is reflected automatically. We pass `tick`
-  // as a key so cancelling + re-running immediately reflects the new
-  // row.
+  // `useLiveQuery` is reactive — any write to `queryHistory` is
+  // reflected automatically. We pass `tick` so a fresh write
+  // re-reads the latest rows.
   const historyResult = useLiveQuery<ReadonlyArray<QueryHistory>>(
     async () => {
       if (dbId == null) return EMPTY_HISTORY
@@ -136,9 +102,6 @@ export function useQuery(): UseQueryResult {
     },
     [dbId, tick],
   )
-  // Memoize the fallback so consumers that depend on `history` in a
-  // dep array do not enter a re-render loop. We use a stable
-  // module-level empty array.
   const history: ReadonlyArray<QueryHistory> = historyResult ?? EMPTY_HISTORY
 
   const clearHistory = useCallback(async (): Promise<void> => {
@@ -150,14 +113,16 @@ export function useQuery(): UseQueryResult {
   const run = useCallback(
     async (sql: string, options: RunOptions = {}): Promise<QueryResultShape> => {
       if (!api || dbId == null) {
-        const err: SerializedError = {
-          code: 'NOT_READY',
-          message: 'Worker not ready or no active database',
-          translatedMessage: 'Selecciona una base de datos antes de ejecutar consultas.',
-        }
+        const err = buildNotReadyError()
         setError(err)
-        setResult({ ok: false, error: err, executionMs: 0, statementKind: 'other' })
-        return { ok: false, error: err, executionMs: 0, statementKind: 'other' }
+        const synthetic: QueryResultShape = {
+          ok: false,
+          error: err,
+          executionMs: 0,
+          statementKind: 'other',
+        }
+        setResult(synthetic)
+        return synthetic
       }
 
       // Cancel any previous inflight run before starting a new one.
@@ -180,95 +145,59 @@ export function useQuery(): UseQueryResult {
       setLoading(true)
       setError(null)
 
-      const timeoutMs = options.timeoutMs ?? 5_000
-      // Set a wall-clock cancel. The Worker will *also* cap with its
-      // own progress handler, but the timer here guarantees we don't
-      // sit forever if the Worker is wedged in a non-VM-step section.
-      const timeoutPromise = new Promise<never>((_resolve, reject) => {
-        runId.timer = setTimeout(() => {
-          if (runId.cancelled) {
-            reject(new Error('query cancelled'))
-            return
-          }
+      const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+
+      const outcome = await raceExecution({
+        execPromise: api.exec(dbId, sql, { timeoutMs, singleOnly: false }) as Promise<QueryResult>,
+        startedAt: runId.startedAt,
+        timeoutMs,
+        onTimeout: () => {
           runId.cancelled = true
-          // Best-effort cancel; the awaiter below is what actually
-          // surfaces the error to the consumer.
+          // Best-effort cancel; the race has already resolved with
+          // an error so the awaiter below is the only one that
+          // surfaces it to the consumer.
           void api.cancel(dbId).catch(() => undefined)
-          reject(new Error(`Query timed out after ${timeoutMs}ms`))
-        }, timeoutMs)
+        },
       })
 
-      const execPromise = api
-        .exec(dbId, sql, { timeoutMs, singleOnly: false })
-        .then(
-          (raw) => raw as QueryResultShape,
-          (e: unknown) => {
-            // The exec promise rejected; the race winner may still
-            // be the timeout, in which case this rejection is
-            // suppressed here. We re-throw to make sure the consumer
-            // (or the test cleanup) sees the real error.
-            throw e instanceof Error ? e : new Error(String(e))
-          },
-        )
+      if (runId.cancelled && outcome.kind === 'error') {
+        // A cancellation already happened — don't update the
+        // result (the consumer's `cancel()` already settled state).
+        setLoading(false)
+        return buildFailureResult({ startedAt: runId.startedAt, error: outcome.error })
+      }
 
-      try {
-        const response = await Promise.race([execPromise, timeoutPromise])
-        if (runId.cancelled) {
-          // A cancellation already happened — don't update state.
-          return response
-        }
+      if (outcome.kind === 'ok') {
+        const response = outcome.result as QueryResultShape
         setResult(response)
         if (response.ok) {
           setError(null)
         } else if (response.error) {
           setError(response.error)
         }
-        // Persist to history.
         if (options.persistHistory !== false) {
           const executionMs = response.executionMs ?? Date.now() - runId.startedAt
           await queryHistory
-            .addEntry(
-              dbId,
-              sql,
-              response.ok,
-              executionMs,
-              response.error?.message,
-            )
+            .addEntry(dbId, sql, response.ok, executionMs, response.error?.message)
             .catch(() => undefined)
           setTick((t) => t + 1)
-        }
-        return response
-      } catch (e) {
-        if (runId.timer) clearTimeout(runId.timer)
-        const se = toSerializedError(e)
-        setError(se)
-        const failure: QueryResultShape = {
-          ok: false,
-          error: se,
-          executionMs: Date.now() - runId.startedAt,
-          statementKind: 'other',
-        }
-        setResult(failure)
-        if (options.persistHistory !== false) {
-          await queryHistory
-            .addEntry(
-              dbId,
-              sql,
-              false,
-              failure.executionMs,
-              se.message,
-            )
-            .catch(() => undefined)
-          setTick((t) => t + 1)
-        }
-        return failure
-      } finally {
-        if (runId.timer) clearTimeout(runId.timer)
-        if (inflightRef.current === runId) {
-          inflightRef.current = null
         }
         setLoading(false)
+        return response
       }
+
+      // outcome.kind === 'error' (timeout or exec rejection).
+      const failure = buildFailureResult({ startedAt: runId.startedAt, error: outcome.error })
+      setResult(failure)
+      setError(failure.error ?? toSerializedError(undefined))
+      if (options.persistHistory !== false) {
+        await queryHistory
+          .addEntry(dbId, sql, false, failure.executionMs, failure.error?.message)
+          .catch(() => undefined)
+        setTick((t) => t + 1)
+      }
+      setLoading(false)
+      return failure
     },
     [api, dbId],
   )

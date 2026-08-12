@@ -35,7 +35,8 @@ npm run sync:wasm       # copy wa-sqlite*.wasm from node_modules into public/
 - `src/content/` — Course content: 4 seed DBs (`databases/`), 16 lessons across 4 files (`lessons/`), `loaders.ts`, `glossary.ts`, `study-guide.ts`, `stats.ts`, `i18n` dictionaries.
 - `src/ui/` — React tree (pages + components per feature folder).
 - `pocs/` — Original proof-of-concept pages. Still mounted at `/poc/3` and `/poc/6` via `src/router.tsx`. Tests in `pocs/**/*.test.ts` are also picked up by vitest.
-- `*-REPORT.md` — Per-phase architecture notes. Read these before touching the matching module instead of guessing.
+- `docs/reports/*.md` — Per-phase architecture notes. Read these before touching the matching module instead of guessing. (Moved from `*-REPORT.md` in the root; same content, new path.)
+- `PROJECT_PLAN.md` — Estado activo del proyecto + roadmap. Source of truth para "qué falta".
 - `roadmap.md` — Pending work (Fases 9–14). Current scope ends at Fase 8.
 
 ## wa-sqlite 1.0 quirks (these will bite you)

@@ -52,8 +52,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { settings as settingsStore } from '../../core/persistence'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../core/persistence/dexie'
-import { analyze } from '../../workers/statement-analyzer'
-import type { AnalyzedStatement } from '../../workers/types'
+import { runPlaygroundPipeline } from '../../core/services/playgroundController'
 import { useTranslation } from '../../core/i18n/i18n'
 import type { SerializedError } from '../../workers/types'
 
@@ -121,10 +120,6 @@ ORDER BY total_spent DESC;
 `
 
 /** A statement is "destructive" when the analyzer flags a checkpoint. */
-function isDestructive(statements: ReadonlyArray<AnalyzedStatement>): boolean {
-  return statements.some((s) => s.requiresCheckpoint)
-}
-
 function tableNames(schema: { tables: ReadonlyArray<{ name: string }> } | null): string[] {
   if (!schema) return []
   return schema.tables.map((t) => t.name)
@@ -228,27 +223,26 @@ export function PlaygroundPage(): React.ReactNode {
     })
   }, [])
 
-  // Editor execute handler. After a DDL run, re-introspect the schema.
-  // Before a destructive run, capture a snapshot so Undo has a target.
+  // Editor execute handler. The pipeline (snapshot / run /
+  // re-introspect) is encapsulated in `runPlaygroundPipeline` so
+  // the decisions are testable in pure vitest. The page just
+  // wires the deps.
   const handleExecute = useCallback(
     async (sql: string) => {
-      if (!api || dbId == null) return
-      const statements = analyze(sql)
-      if (isDestructive(statements) && dbId !== DEFAULT_DB_ID) {
-        // Only capture an auto-snapshot for user DBs. The built-in
-        // playground is intentionally reset on every app start, so
-        // the Undo button is a no-op there.
-        try {
-          await api.snapshot(dbId, 'auto: pre-destructive', 'pre-destructive')
-        } catch {
-          // Non-fatal — the run still proceeds.
-        }
-      }
-      await run(sql)
-      if (statements.some((s) => s.kind === 'create' || s.kind === 'drop' || s.kind === 'alter')) {
-        invalidateSchema()
-        void refreshSchema()
-      }
+      if (!api) return
+      await runPlaygroundPipeline({
+        sql,
+        dbId,
+        defaultDbId: DEFAULT_DB_ID,
+        deps: {
+          run,
+          captureSnapshot: async (id) => {
+            await api.snapshot(id, 'auto: pre-destructive', 'pre-destructive')
+          },
+          invalidateSchema,
+          refreshSchema,
+        },
+      })
     },
     [api, dbId, run, invalidateSchema, refreshSchema],
   )

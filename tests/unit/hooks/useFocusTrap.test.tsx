@@ -101,4 +101,35 @@ describe('useFocusTrap', () => {
     expect(screen.queryByTestId('dialog')).toBeNull()
     expect(document.activeElement).not.toBe(screen.getByTestId('outside'))
   })
+
+  it('keeps focus on the container when the dialog has no focusables', () => {
+    function EmptyTrapHarness(): ReactNode {
+      const [open, setOpen] = useState<boolean>(false)
+      const ref = useFocusTrap<HTMLDivElement>(open)
+      return (
+        <div>
+          <button type="button" onClick={() => setOpen(true)} data-testid="open">
+            Open
+          </button>
+          {open ? (
+            <div ref={ref} role="dialog" data-testid="dialog" tabIndex={-1}>
+              {/* No focusable children — every interaction is text. */}
+              <p>This dialog has no buttons, no inputs, no links.</p>
+            </div>
+          ) : null}
+        </div>
+      )
+    }
+    render(<EmptyTrapHarness />)
+    fireEvent.click(screen.getByTestId('open'))
+    // Wait for the initial focus to land on the container.
+    return waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId('dialog'))
+    }).then(() => {
+      // Press Tab — the trap should keep focus on the container
+      // (no focusables to cycle to).
+      fireEvent.keyDown(document, { key: 'Tab' })
+      expect(document.activeElement).toBe(screen.getByTestId('dialog'))
+    })
+  })
 })

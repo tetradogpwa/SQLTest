@@ -1,25 +1,20 @@
 /**
  * useUserDatabases — reactive list of user databases + CRUD actions.
  *
- * The hook is the single entry point for the "Bases de datos" page
- * (and the playground's DB selector) to interact with the Worker's
- * import / export / create / delete surface. It owns:
+ * The hook is the React adapter over `userDatabasesService`. All
+ * business logic (validation, sanitisation, ID assignment, error
+ * normalisation) lives in the service; this hook is a thin wrapper
+ * that:
  *
- *   - `databases`  → live view of the Dexie `databases` table
- *                    (re-renders on any insert / update / delete).
- *   - `loading`    → `true` while any in-flight action is running.
- *   - `error`      → last error message (or `null`).
- *   - action methods (`create`, `import`, `export`, `rename`,
- *     `delete`, `refresh`) that orchestrate the Worker + the
- *     `dbMetadata` store. The Worker is the source of truth for the
- *     bytes; the Dexie row is the source of truth for the UI list.
+ *  - subscribes to the Dexie `databases` table via `useLiveQuery`
+ *  - tracks `loading` / `error` state in `useState`
+ *  - delegates every action to a service function that receives
+ *    the Worker call as an injected callback
  *
- * The Main Thread is the *only* writer to Dexie (RESEARCH §13.1); this
- * hook does not talk to Dexie from a Worker module. When the Worker
- * emits a `db:registered` / `db:deleted` / `db:sizeChanged` event via
- * the `PersistenceService`, the corresponding row is added / updated
- * automatically — the hook does not subscribe to those events
- * directly.
+ * The split makes the service testable with pure vitest (no React,
+ * no Comlink, no Dexie). The hook keeps the React-specific
+ * concerns — state, lifecycle, error mapping — out of the
+ * service.
  */
 import { useCallback, useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -28,6 +23,16 @@ import { useDatabase } from './useDatabase'
 import { dbMetadata, snapshotMetadataStore, undoStore } from '../core/persistence'
 import { db as defaultDb } from '../core/persistence/dexie'
 import type { Database } from '../core/persistence'
+import {
+  createDatabase,
+  createDatabaseRow,
+  DatabaseValidationError,
+  importDatabase,
+  ImportValidationError,
+  toErrorMessage,
+  toExportBlob,
+  validateDatabaseName,
+} from '../core/services/userDatabasesService'
 
 export interface UseUserDatabasesResult {
   /** The full list of user databases, newest first. */
@@ -68,38 +73,6 @@ export interface UseUserDatabasesResult {
   delete: (id: string) => Promise<void>
 }
 
-/** A reasonable cap on import size; the Worker also enforces this. */
-const MAX_IMPORT_BYTES = 100 * 1024 * 1024 // 100 MB
-
-/**
- * Slugify the filename to derive a stable Dexie `id`. The Worker
- * sanitises the name differently; this id is purely a Main-Thread
- * bookkeeping key. The Worker's internal `dbId` is numeric and
- * assigned by `ImportExportManager`; we never expose it here.
- */
-function fileToId(name: string): string {
-  const trimmed = name.trim()
-  const base = trimmed.split(/[\\/]/).pop() ?? trimmed
-  const slug = base
-    .replace(/\.(sqlite3?|db)$/i, '')
-    .replace(/[^A-Za-z0-9._-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .toLowerCase()
-  const safe = slug.length > 0 ? slug.slice(0, 48) : 'db'
-  const suffix = Math.random().toString(36).slice(2, 8)
-  return `${safe}-${suffix}`
-}
-
-function isValidName(name: string): boolean {
-  const trimmed = name.trim()
-  if (trimmed.length === 0) return false
-  if (trimmed.length > 64) return false
-  // No path separators, no control chars. Allow letters, digits,
-  // spaces, dash, underscore, dot.
-  return /^[\p{L}\p{N} ._-]+$/u.test(trimmed)
-}
-
 export function useUserDatabases(): UseUserDatabasesResult {
   const { api, ready } = useDatabase()
   const [loading, setLoading] = useState<boolean>(false)
@@ -124,100 +97,90 @@ export function useUserDatabases(): UseUserDatabasesResult {
   }, [ready])
 
   const refresh = useCallback(async (): Promise<void> => {
-    // `useLiveQuery` already keeps the list in sync; this is exposed
-    // for symmetry with the other actions and for manual refresh in
-    // edge cases (e.g. after a Dexie write from outside the hook).
     if (defaultDb.databases) {
       await defaultDb.databases.toArray()
     }
   }, [])
 
-  const create = useCallback(
-    async (name: string): Promise<Database> => {
-      if (!api) throw new Error('Worker no está listo.')
-      if (!isValidName(name)) {
-        throw new Error('Nombre inválido.')
-      }
+  // Centralised error mapping: every action wraps `setError(msg)` so
+  // the user always sees a string (never an object / null / undefined).
+  // The service is responsible for normalising the input via
+  // `toErrorMessage`.
+  const runAction = useCallback(
+    async <T>(action: () => Promise<T>): Promise<T> => {
       setLoading(true)
       setError(null)
       try {
-        const { dbId, sizeBytes } = (await api.createUserDatabase(name)) as {
-          dbId: number
-          sizeBytes: number
-        }
-        const id = `db-${dbId}`
-        const now = Date.now()
-        const row: Database = {
-          id,
-          name: name.trim(),
-          createdAt: now,
-          updatedAt: now,
-          sizeBytes,
-          origin: 'created',
-        }
-        await dbMetadata['db'].databases.add(row)
-        return row
+        return await action()
       } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        setError(msg)
+        const mapped = toErrorMessage(e)
+        // Validation errors carry the i18n key directly (e.g.
+        // `databases.createDialog.error.invalidName`). The UI
+        // displays the key when present, otherwise the message.
+        if (e instanceof DatabaseValidationError || e instanceof ImportValidationError) {
+          setError(e.key)
+        } else if (mapped.kind === 'empty') {
+          // No message came out of the service — do not set a
+          // banner. The hook treats "no info" as "no error".
+          setError(null)
+        } else {
+          setError(mapped.message)
+        }
         throw e
       } finally {
         setLoading(false)
       }
     },
-    [api],
+    [],
+  )
+
+  const create = useCallback(
+    (name: string): Promise<Database> =>
+      runAction(async () => {
+        if (!api) throw new Error('Worker no está listo.')
+        const row = await createDatabase({
+          name,
+          callWorker: async (sanitized: string) => {
+            const result = (await api.createUserDatabase(sanitized)) as {
+              dbId: number
+              sizeBytes: number
+            }
+            return result
+          },
+        })
+        await dbMetadata['db'].databases.add(row)
+        return row
+      }),
+    [api, runAction],
   )
 
   const importFile = useCallback(
-    async (file: File, displayName?: string): Promise<Database> => {
-      if (!api) throw new Error('Worker no está listo.')
-      if (file.size === 0) {
-        throw new Error('El archivo está vacío.')
-      }
-      if (file.size > MAX_IMPORT_BYTES) {
-        throw new Error('El archivo excede el límite permitido.')
-      }
-      setLoading(true)
-      setError(null)
-      try {
-        const buffer = await file.arrayBuffer()
-        const bytes = new Uint8Array(buffer)
-        const targetName = (displayName ?? file.name).replace(/\.(sqlite3?|db)$/i, '')
-        const { sizeBytes } = (await api.import(bytes, targetName)) as {
-          dbId: number
-          sizeBytes: number
-        }
-        const id = fileToId(file.name)
-        const now = Date.now()
-        const row: Database = {
-          id,
-          name: targetName,
-          createdAt: now,
-          updatedAt: now,
-          sizeBytes,
-          origin: 'imported',
-        }
+    (file: File, displayName?: string): Promise<Database> =>
+      runAction(async () => {
+        if (!api) throw new Error('Worker no está listo.')
+        const row = await importDatabase({
+          file,
+          ...(displayName !== undefined ? { displayName } : {}),
+          callWorker: async (bytes, sanitized) => {
+            const result = (await api.import(bytes, sanitized)) as {
+              dbId: number
+              sizeBytes: number
+            }
+            return result
+          },
+        })
         await dbMetadata['db'].databases.add(row)
         return row
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        setError(msg)
-        throw e
-      } finally {
-        setLoading(false)
-      }
-    },
-    [api],
+      }),
+    [api, runAction],
   )
 
   const exportFile = useCallback(
-    async (id: string): Promise<{ blob: Blob; filename: string }> => {
-      if (!api) throw new Error('Worker no está listo.')
-      const row = await dbMetadata.get(id)
-      if (!row) throw new Error('Base de datos no encontrada.')
-      setLoading(true)
-      setError(null)
-      try {
+    (id: string): Promise<{ blob: Blob; filename: string }> =>
+      runAction(async () => {
+        if (!api) throw new Error('Worker no está listo.')
+        const row = await dbMetadata.get(id)
+        if (!row) throw new Error('Base de datos no encontrada.')
         // The Dexie row id is a string; the Worker uses the numeric
         // dbId assigned at creation/import. The mapping is
         // `id = "db-<numeric>"` for created/imported rows, so we
@@ -228,51 +191,42 @@ export function useUserDatabases(): UseUserDatabasesResult {
         }
         const numericDbId = Number(match[1])
         const bytes = (await api.export(numericDbId)) as Uint8Array
-        const blob = new Blob([new Uint8Array(bytes)], {
-          type: 'application/x-sqlite3',
-        })
-        const filename = `${row.name}.sqlite3`
-        return { blob, filename }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        setError(msg)
-        throw e
-      } finally {
-        setLoading(false)
-      }
-    },
-    [api],
+        return toExportBlob({ bytes, name: row.name })
+      }),
+    [api, runAction],
   )
 
   const rename = useCallback(
-    async (id: string, newName: string): Promise<Database> => {
-      if (!isValidName(newName)) {
-        throw new Error('Nombre inválido.')
-      }
-      setLoading(true)
-      setError(null)
-      try {
-        await dbMetadata.rename(id, newName.trim())
+    (id: string, newName: string): Promise<Database> =>
+      runAction(async () => {
+        // Re-validate via the service so we share the same rules
+        // as the create flow. (Tests cover the validation
+        // function; the hook just calls it.)
+        const validation = validateDatabaseName(newName)
+        if (!validation.ok) {
+          throw new DatabaseValidationError(validation.key)
+        }
+        await dbMetadata.rename(id, validation.trimmed)
         const row = await dbMetadata.get(id)
         if (!row) throw new Error('Base de datos no encontrada.')
-        return row
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        setError(msg)
-        throw e
-      } finally {
-        setLoading(false)
-      }
-    },
-    [],
+        // Re-stamp `updatedAt` via the row constructor so the
+        // service owns the timestamp logic.
+        return createDatabaseRow({
+          dbId: Number((/^db-(\d+)$/.exec(id) ?? [])[1] ?? 0),
+          name: row.name,
+          sizeBytes: row.sizeBytes,
+          origin: row.origin,
+          // The Dexie rename already touched updatedAt; we keep
+          // the service's `now()` for consistency.
+        })
+      }),
+    [runAction],
   )
 
   const deleteDb = useCallback(
-    async (id: string): Promise<void> => {
-      if (!api) throw new Error('Worker no está listo.')
-      setLoading(true)
-      setError(null)
-      try {
+    (id: string): Promise<void> =>
+      runAction(async () => {
+        if (!api) throw new Error('Worker no está listo.')
         const match = /^db-(\d+)$/.exec(id)
         if (match && match[1]) {
           const numericDbId = Number(match[1])
@@ -292,15 +246,8 @@ export function useUserDatabases(): UseUserDatabasesResult {
         // we mirror that here so the UI list stays clean.
         await snapshotMetadataStore.removeByDb(id).catch(() => undefined)
         await undoStore.removeByDb(id).catch(() => undefined)
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        setError(msg)
-        throw e
-      } finally {
-        setLoading(false)
-      }
-    },
-    [api],
+      }),
+    [api, runAction],
   )
 
   return {

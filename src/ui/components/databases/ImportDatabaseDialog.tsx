@@ -18,6 +18,11 @@ import { FileUp, Upload, X } from 'lucide-react'
 
 import { useTranslation } from '../../../core/i18n/i18n'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import {
+  deriveImportDisplayName,
+  shouldAutoFillDisplayName,
+  validateImportFile,
+} from '../../../core/services/modalLogic'
 import styles from './Dialog.module.css'
 
 export interface ImportDatabaseDialogProps {
@@ -25,14 +30,6 @@ export interface ImportDatabaseDialogProps {
   onClose: () => void
   /** Called with the picked file + optional display name. */
   onSubmit: (file: File, displayName: string) => Promise<unknown>
-}
-
-const MAX_IMPORT_BYTES = 100 * 1024 * 1024 // 100 MB
-const ACCEPTED_EXTENSIONS = ['db', 'sqlite', 'sqlite3', 's3db']
-
-function isAcceptedFile(file: File): boolean {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  return ACCEPTED_EXTENSIONS.includes(ext)
 }
 
 export function ImportDatabaseDialog({
@@ -63,22 +60,19 @@ export function ImportDatabaseDialog({
   const handleFile = useCallback(
     (picked: File | null) => {
       if (!picked) return
-      if (!isAcceptedFile(picked)) {
-        setError(t('databases.importDialog.error.file'))
-        setFile(null)
-        return
-      }
-      if (picked.size > MAX_IMPORT_BYTES) {
-        setError(t('databases.importDialog.error.tooBig'))
+      const validation = validateImportFile(picked)
+      if (!validation.ok) {
+        setError(t(validation.key))
         setFile(null)
         return
       }
       setError(null)
       setFile(picked)
-      // Default the display name to the filename (without extension).
-      if (displayName.trim().length === 0) {
-        const baseName = picked.name.replace(/\.[^.]+$/, '')
-        setDisplayName(baseName)
+      // Default the display name to the filename when the user
+      // has not typed anything yet — preserves the previous
+      // override across file picks.
+      if (shouldAutoFillDisplayName(displayName)) {
+        setDisplayName(deriveImportDisplayName({ file: picked, override: '' }))
       }
     },
     [displayName, t],

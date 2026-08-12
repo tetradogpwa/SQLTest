@@ -19,6 +19,7 @@ import { X } from 'lucide-react'
 
 import { useTranslation } from '../../../core/i18n/i18n'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import { validateDatabaseName } from '../../../core/services/userDatabasesService'
 import styles from './Dialog.module.css'
 
 export interface CreateDatabaseDialogProps {
@@ -26,16 +27,6 @@ export interface CreateDatabaseDialogProps {
   onClose: () => void
   /** Called with the trimmed name. The parent calls `useUserDatabases().create`. */
   onSubmit: (name: string) => Promise<unknown>
-}
-
-function validateName(name: string): string | null {
-  const trimmed = name.trim()
-  if (trimmed.length === 0) return 'databases.createDialog.error.invalidName'
-  if (trimmed.length > 64) return 'databases.createDialog.error.invalidName'
-  if (!/^[\p{L}\p{N} ._-]+$/u.test(trimmed)) {
-    return 'databases.createDialog.error.invalidName'
-  }
-  return null
 }
 
 export function CreateDatabaseDialog({
@@ -63,7 +54,8 @@ export function CreateDatabaseDialog({
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault()
-      const validationError = validateName(name)
+      const validation = validateDatabaseName(name)
+      const validationError = validation.ok ? null : validation.key
       if (validationError !== null) {
         setError(t(validationError))
         return

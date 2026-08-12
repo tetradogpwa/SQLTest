@@ -43,7 +43,7 @@ Cada push a `main` y cada PR ejecuta:
 5. **build** — `vite build` con el plugin PWA; sube `dist/` como
    artefacto para inspección.
 
-Más detalles en [`CI-CD-REPORT.md`](./CI-CD-REPORT.md) y
+Más detalles en [`docs/reports/`](./docs/reports/) y
 [`.github/workflows/`](./.github/workflows/).
 
 ## Características
@@ -88,15 +88,19 @@ pocs/                     # Pruebas de concepto originales (POC-1 a POC-6)
 
 ## Reportes por fase
 
-Todo el trabajo está documentado en `*-REPORT.md`:
+Todo el trabajo está documentado en `docs/reports/*.md`:
 
 - `SCAFFOLD-REPORT.md`, `POC-ENGINE-REPORT.md`, `POC-UI-REPORT.md`
 - `WORKER-EXEC-REPORT.md`, `WORKER-STORAGE-REPORT.md`
 - `PERSISTENCE-REPORT.md`, `UI-SHELL-REPORT.md`
 - `EDITOR-REPORT.md`, `EXERCISE-ENGINE-REPORT.md`
 - `COURSE-CONTENT-REPORT.md`, `COURSE-UI-REPORT.md`
+- `POLISH-REPORT.md`, `COVERAGE-REPORT.md`, `CI-CD-REPORT.md`,
+  `OFFLINE-PWA-REPORT.md`, `REFACTOR-ROADMAP.md`,
+  `AI-ASSISTANT-DESIGN.md` (diseño abandonado)
 
-`roadmap.md` lista lo que queda por hacer (Fase 9 en adelante).
+`roadmap.md` lista lo que queda por hacer (Fase 9 en adelante) o
+revisa `PROJECT_PLAN.md` para el plan activo.
 
 ## Decisiones de arquitectura clave
 

@@ -187,6 +187,29 @@ const es: Dictionary = {
   'playground.stats.queries': 'Consultas ejecutadas',
   'playground.stats.lastError': 'Último error',
 
+  // Study mode (per-lesson persistent study DB)
+  'study.section.label': 'Modo estudio',
+  'study.section.title': 'Base de datos de estudio',
+  'study.section.description':
+    'Crea o selecciona una base de datos persistente para hacer todos los ejercicios de la lección. Puedes restaurarla cuando quieras empezar de nuevo.',
+  'study.empty.explained':
+    'Esta lección usa la base de datos {dbId}. Crea una en la página de Bases de datos o selecciona una existente para empezar a estudiar.',
+  'study.empty.noDbs':
+    'No tienes bases de datos todavía. Ve a la página de [Bases de datos]({href}) para crear una.',
+  'study.pick': 'Elegir base de datos',
+  'study.pick.title': 'Elegir base de datos de estudio',
+  'study.pick.description':
+    'Estas son tus bases de datos con el prefijo {dbId}. Elige la que quieres usar para esta lección.',
+  'study.change': 'Cambiar',
+  'study.active.explained':
+    'Estás estudiando con la base de datos «{name}». Los cambios se conservan entre ejercicios; restáurala cuando quieras empezar de nuevo.',
+  'study.disable': 'Desactivar modo estudio',
+  'study.reset': 'Restaurar base de datos',
+  'study.reset.confirm.title': '¿Restaurar la base de datos?',
+  'study.reset.confirm.message':
+    'Vas a descartar todos los cambios en «{name}» y reaplicar la semilla original. Esta acción no se puede deshacer.',
+  'study.reset.confirm.action': 'Restaurar',
+
   // Settings
   'settings.title': 'Ajustes',
   'settings.subtitle': 'Preferencias generales de la aplicación.',

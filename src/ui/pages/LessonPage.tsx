@@ -11,6 +11,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { LessonView } from '../components/course/LessonView'
+import { LessonStudySection } from './LessonStudySection'
 import { loadCourse } from '../../content/loaders'
 import { useProgress } from '../../hooks/useProgress'
 import { ContentNotFoundError } from '../../content/loaders'
@@ -52,6 +53,10 @@ export function LessonPage(): React.ReactNode {
 
   return (
     <div data-testid="lesson-page">
+      <LessonStudySection
+        lessonId={resolved.lesson.id}
+        lessonDatabaseId={resolved.lesson.exercises[0]?.databaseId ?? ''}
+      />
       <LessonView
         lesson={resolved.lesson}
         level={resolved.level}

@@ -171,7 +171,9 @@ describe('useUserDatabases', () => {
     const file = new File([new Uint8Array(10)], 'huge.db')
     Object.defineProperty(file, 'size', { value: 200 * 1024 * 1024 })
     await act(async () => {
-      await expect(handle.current!.importFile(file)).rejects.toThrow(/límite/)
+      await expect(handle.current!.importFile(file)).rejects.toThrow(
+        'databases.importDialog.error.tooBig',
+      )
     })
     expect(fakeApi.import).not.toHaveBeenCalled()
   })

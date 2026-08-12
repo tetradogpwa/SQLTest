@@ -10,7 +10,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, waitFor } from '@testing-library/react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import { useDatabase, __resetDatabaseSession, type DBApi } from '../../../src/hooks/useDatabase'
 import { useSchema } from '../../../src/hooks/useSchema'
@@ -155,5 +155,67 @@ describe('useSchema', () => {
     render(<SkipHarness />)
     expect(lastState().canQuery).toBe(false)
     expect(api.schema).not.toHaveBeenCalled()
+  })
+
+  it('deduplicates concurrent fetches (one worker call when two consumers ask at the same time)', async () => {
+    // `api.schema` resolves on the next microtask. The hook fires
+    // the fetch once, registers the promise in the inflight map,
+    // and a second fetch (e.g. via `refresh()` while the first
+    // is in flight) awaits the same promise.
+    const api = makeFakeApi(SAMPLE_SCHEMA)
+    let resolveSchema: ((v: unknown) => void) | null = null
+    api.schema.mockImplementation(
+      () =>
+        new Promise((res) => {
+          resolveSchema = res
+        }),
+    )
+    render(<Harness api={api} dbId={1} />)
+    // Wait until the first fetch is in flight.
+    await waitFor(() => expect(api.schema).toHaveBeenCalledTimes(1))
+    // Trigger a refresh while the fetch is still pending.
+    void act(() => {
+      void lastState().refresh()
+    })
+    // The second call should NOT have hit the worker yet (it is
+    // awaiting the in-flight promise).
+    expect(api.schema).toHaveBeenCalledTimes(1)
+    // Resolve the first call; both consumers should now see the
+    // schema.
+    const resolve = resolveSchema as ((v: unknown) => void) | null
+    if (resolve) resolve(SAMPLE_SCHEMA)
+    await waitFor(() => expect(lastState().schema).not.toBeNull())
+  })
+
+  it('serves a cached schema when the user switches back to a previously-fetched dbId', async () => {
+    const api = makeFakeApi(SAMPLE_SCHEMA)
+    function SwitchingHarness(): ReactNode {
+      const { setActiveDb } = useDatabase({ api: api as unknown as never, disabled: true })
+      const [current, setCurrent] = useState<number>(1)
+      const state = useSchema()
+      useEffect(() => {
+        setActiveDb(current)
+      }, [current, setActiveDb])
+      ;(globalThis as { __LAST_SCHEMA_STATE?: SchemaState; __SET_DB?: (n: number) => void }).__LAST_SCHEMA_STATE = state
+      ;(globalThis as { __LAST_SCHEMA_STATE?: SchemaState; __SET_DB?: (n: number) => void }).__SET_DB = setCurrent
+      return null
+    }
+    render(<SwitchingHarness />)
+    await waitFor(() => expect(lastState().schema).not.toBeNull())
+    expect(api.schema).toHaveBeenCalledTimes(1)
+
+    // Switch to a different dbId — cache miss, second worker call.
+    act(() => {
+      ;(globalThis as { __SET_DB?: (n: number) => void }).__SET_DB?.(2)
+    })
+    await waitFor(() => expect(api.schema).toHaveBeenCalledTimes(2))
+
+    // Switch back to the first dbId — cache HIT, no third worker call.
+    act(() => {
+      ;(globalThis as { __SET_DB?: (n: number) => void }).__SET_DB?.(1)
+    })
+    await waitFor(() => expect(lastState().schema?.tables[0]?.name).toBe('users'))
+    // Still only 2 calls — the cached schema is reused.
+    expect(api.schema).toHaveBeenCalledTimes(2)
   })
 })

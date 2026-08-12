@@ -34,7 +34,12 @@ import type { DBApi, Exercise, Hint, PatternMatch } from '../core/exercises/type
 import type { QueryResult, SerializedError, StorageCapability } from '../workers/types'
 import { progressStore } from '../core/persistence/progress-store'
 import { loadCourse } from '../content/loaders'
-import type { Course, Lesson } from '../content/types'
+import type { Course } from '../content/types'
+import {
+  generateSessionId,
+  resolveExerciseContext,
+  toSerializedError as toSerializedErrorPure,
+} from '../core/services/exerciseHookService'
 
 /** Lifecycle of the hook (independent from the runner's internal state). */
 export type UseExerciseStatus =
@@ -80,6 +85,14 @@ export interface UseExerciseResult {
 export interface UseExerciseOptions {
   /** Hint count to *start* with (defaults to 0). */
   initialHintsRevealed?: number
+  /**
+   * Optional study-DB id (the numeric Worker handle of a user DB).
+   * When set, the runner uses that DB instead of creating a
+   * per-session working-copy. The study mode is set on mount and
+   * cannot change for the lifetime of the runner (re-mount the
+   * hook to change it).
+   */
+  studyDbId?: number | null
 }
 
 /**
@@ -102,7 +115,7 @@ export function useExercise(
   const course: Course = loadCourse('es')
   const ctx = resolveExerciseContext(course, exerciseId)
   const exercise: Exercise = ctx.exercise
-  const lesson: Lesson = ctx.lesson
+  const lesson = ctx.lesson
 
   // 2. Per-mount sessionId. Generated once via a ref so it survives
   //    re-renders but is fresh for every new mount.
@@ -121,6 +134,7 @@ export function useExercise(
       exercise,
       capability,
       sessionId,
+      ...(options.studyDbId !== undefined ? { studyDbId: options.studyDbId } : {}),
     })
   }
   const runner = runnerRef.current
@@ -153,7 +167,7 @@ export function useExercise(
       .catch((e: unknown) => {
         if (!cancelled) {
           setStatus('failed')
-          setLastError(toSerializedError(e))
+          setLastError(toSerializedErrorPure(e))
         }
       })
     return () => {
@@ -199,7 +213,7 @@ export function useExercise(
         setLastPatterns(patterns)
         setStatus('ready')
       } catch (e) {
-        const err = toSerializedError(e)
+        const err = toSerializedErrorPure(e)
         setLastError(err)
         lastErrorRef.current = err
         setLastPatterns(
@@ -224,7 +238,7 @@ export function useExercise(
     } catch (e) {
       // The runner already swallows errors, so this branch is mostly
       // defensive. We still want to surface something to the UI.
-      const err = toSerializedError(e)
+      const err = toSerializedErrorPure(e)
       setLastError(err)
       lastErrorRef.current = err
       report = {
@@ -317,71 +331,3 @@ export function useExercise(
   }
 }
 
-/* ------------------------------------------------------------------ *
- *  Internal helpers                                                   *
- * ------------------------------------------------------------------ */
-
-interface ResolvedContext {
-  exercise: Exercise
-  lesson: Lesson
-}
-
-function resolveExerciseContext(course: Course, exerciseId: string): ResolvedContext {
-  for (const level of course.levels) {
-    for (const lesson of level.lessons) {
-      for (const ex of lesson.exercises) {
-        if (ex.id === exerciseId) return { exercise: ex, lesson }
-      }
-    }
-  }
-  // Fallback: a *placeholder* exercise with a no-op solution. The
-  // page-level guard (ExercisePage only mounts for a known id) means
-  // we never reach this in production; the placeholder keeps the
-  // type-checker happy.
-  return {
-    exercise: {
-      id: exerciseId,
-      lessonId: 'unknown',
-      type: 'writeQuery',
-      title: '(ejercicio no encontrado)',
-      prompt: '',
-      solution: '',
-      solutionExplanation: '',
-      validation: [],
-      hints: [],
-      difficulty: 1,
-      tags: [],
-      databaseId: 'unknown',
-    },
-    lesson: {
-      id: 'unknown',
-      order: 0,
-      title: '(lección desconocida)',
-      description: '',
-      objectives: [],
-      exercises: [],
-    },
-  }
-}
-
-/**
- * Generate a per-mount session id. We use `Math.random` to avoid
- * pulling in a UUID library; the id is only used as a filename prefix
- * so collisions are acceptable (they would just overwrite the file).
- */
-function generateSessionId(): string {
-  return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
-}
-
-/** Wrap an unknown thrown value in a `SerializedError`. */
-function toSerializedError(e: unknown): SerializedError {
-  if (e && typeof e === 'object' && 'code' in e && 'message' in e) {
-    return e as SerializedError
-  }
-  const message = e instanceof Error ? e.message : String(e)
-  return {
-    code: 'UNEXPECTED',
-    message,
-    translatedMessage: `Error inesperado: ${message}.`,
-  }
-}
